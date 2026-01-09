@@ -88,7 +88,11 @@
         const WORDS = ["小鸡", "见面", "小象", "小羊", "小狗", "手", "拉拉手", "招招手", "皮球", "风", "大树", "小", "大", "火把", "尾巴", "水", "青蛙", "小河", "鸭子", "河马", "乌龟", "门", "水龙头", "幼儿园", "泡泡", "喷", "香皂", "干净", "毛巾", "洗", "车站", "汽车", "小猪", "兔子", "郊游", "月牙", "响", "门铃", "公园", "下棋", "太阳", "画画", "妈妈", "爸爸", "小猫", "朋友", "土", "仓鼠", "洞", "花", "低", "高", "奶奶", "长大", "哥哥", "爷爷", "妹妹", "爱心", "衣服", "头发"];
         
         const EMOJIS = {"小鸡":"🐥","见面":"🤝","小象":"🐘","小羊":"🐑","小狗":"🐶","手":"✋","拉拉手":"🤝","招招手":"🙋","皮球":"🏀","风":"💨","大树":"🌳","小":"🐜","大":"🐘","火把":"🔥","尾巴":"🐒","水":"💧","青蛙":"🐸","小河":"🌊","鸭子":"🦆","河马":"🦛","乌龟":"🐢","门":"🚪","水龙头":"🚰","幼儿园":"🏫","泡泡":"🫧","喷":"🚿","香皂":"🧼","干净":"✨","毛巾":"🧣","洗":"🛁","车站":"🚉","汽车":"🚗","小猪":"🐷","兔子":"🐰","郊游":"🏕️","月牙":"🌙","响":"🔔","门铃":"🛎️","公园":"🎠","下棋":"♟️","太阳":"☀️","画画":"🎨","妈妈":"👩","爸爸":"👨","小猫":"🐱","朋友":"👫","土":"🪴","仓鼠":"🐹","洞":"🕳️","花":"🌸","低":"👇","高":"👆","奶奶":"👵","长大":"🌱","哥哥":"👦","爷爷":"👴","妹妹":"👧","爱心":"❤️","衣服":"👕","头发":"💇"};
-        
+
+        // 调试配置：修改这个数字来调整挑战题目数量
+        // 调试时设为3，发布时可以改为10或其他数量
+        const CHALLENGE_QUESTION_COUNT = 10;
+
         const SONGS = [
             { id: 's1', title: '娃娃的手', content: ['离得远，招招手，', '走近啦，握握手。', '一起来，牵牵手，', '做游戏，钩钩手。', '跳个舞，拍拍手。', '再见啦，挥挥手。', '我们都是好朋友，', '亲亲热热拉拉手。'] },
             { id: 's2', title: '小尾巴', content: ['大公鸡，花尾巴，', '走来走去像朵花. ', '小狐狸，红尾巴，', '跑来走去像火把。', '小肥猪，细尾巴，', '“哼哼”一声摇两下。', '小宝宝，追妈妈，', '要当妈妈小尾巴。'] },
@@ -100,19 +104,6 @@
             { id: 's8', title: '妈妈', content: ['你给我洗脸，', '你给我梳头发，', '你给我换衣服，', '你是我的妈妈。', '我给洋娃娃洗脸，', '我给洋娃娃梳头发，', '我是洋娃娃的妈妈。'] }
         ];
 
-        // 儿歌歌词挑战题目数据
-        const SONG_EXAM_QUESTIONS = [
-            { id: 1, songId: 's1', playLyrics: ['离得远，招招手，'], correct: '走近啦，握握手。', options: ['走近啦，握握手。', '跳个舞，拍拍手。', '我们都是好朋友，'] },
-            { id: 2, songId: 's1', playLyrics: ['一起来，牵牵手，'], correct: '做游戏，钩钩手。', options: ['做游戏，钩钩手。', '再见啦，挥挥手。', '亲亲热热拉拉手。'] },
-            { id: 3, songId: 's2', playLyrics: ['大公鸡，花尾巴，'], correct: '走来走去像朵花.', options: ['走来走去像朵花.', '跑来走去像火把。', '要当妈妈小尾巴。'] },
-            { id: 4, songId: 's2', playLyrics: ['小狐狸，红尾巴，'], correct: '跑来走去像火把。', options: ['跑来走去像火把。', '走来走去像朵花.', '“哼哼”一声摇两下。'] },
-            { id: 5, songId: 's3', playLyrics: ['我一个人在家的时候，'], correct: '总想爸爸妈妈来敲门。', options: ['总想爸爸妈妈来敲门。', '总想妈妈来敲门。', '朋友总会来敲门。'] },
-            { id: 6, songId: 's3', playLyrics: ['我们都在家的时候，'], correct: '朋友总会来敲门。', options: ['朋友总会来敲门。', '总想爸爸来敲门。', '总想妈妈来敲门。'] },
-            { id: 7, songId: 's4', playLyrics: ['大风没有家，'], correct: '它在找妈妈。', options: ['它在找妈妈。', '我把门开开，', '你的家，在我家'] },
-            { id: 8, songId: 's5', playLyrics: ['小鸡唱歌，叽叽叽。'], correct: '小狗唱歌，汪汪汪。', options: ['小狗唱歌，汪汪汪。', '老虎唱歌，嗷嗷嗷。', '大家在一起，没关系。'] },
-            { id: 9, songId: 's6', playLyrics: ['大白象，笑眯眯，'], correct: '它请大家洗淋浴。', options: ['它请大家洗淋浴。', '小兔子，小花鸡，', '长鼻子喷水像下雨。'] },
-            { id: 10, songId: 's8', playLyrics: ['你给我洗脸，'], correct: '你给我梳头发，', options: ['你给我梳头发，', '你是我的妈妈。', '我是洋娃娃的妈妈。'] }
-        ];
 
         const CARD_COLORS = ['border-red-400', 'border-blue-400', 'border-green-400', 'border-yellow-400', 'border-purple-400', 'border-pink-400', 'border-orange-400'];
 
@@ -318,7 +309,7 @@
             const [finished, setFinished] = useState(false);
             const [feedback, setFeedback] = useState(null);
             const questions = useMemo(() => {
-                return [...Array(10)].map(() => {
+                return [...Array(CHALLENGE_QUESTION_COUNT)].map(() => {
                     const targetIdx = Math.floor(Math.random() * WORDS.length);
                     const opts = [WORDS[targetIdx], ...WORDS.filter((_, i) => i !== targetIdx).sort(() => 0.5 - Math.random()).slice(0, 2)].sort(() => 0.5 - Math.random());
                     return { targetIdx, opts };
@@ -335,7 +326,7 @@
                 else { speak("再找找看？"); setFeedback('wrong'); onWrong(current.targetIdx); }
                 setTimeout(() => {
                     setFeedback(null);
-                    if (step < 9) setStep(s => s + 1);
+                    if (step < CHALLENGE_QUESTION_COUNT - 1) setStep(s => s + 1);
                     else setFinished(true);
                 }, 1500);
             };
@@ -346,7 +337,7 @@
                     <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up">
                         <div className="text-[8rem] mb-6">🥇</div>
                         <h2 className="text-4xl font-black text-gray-800">挑战完成！</h2>
-                        <div className="text-8xl font-black text-pink-500 my-8">{score}/10</div>
+                        <div className="text-8xl font-black text-pink-500 my-8">{score}/{CHALLENGE_QUESTION_COUNT}</div>
                         <button onClick={onBack} className="w-full py-6 bg-green-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-8 border-green-700">返回主页</button>
                     </div>
                 </div>
@@ -354,7 +345,7 @@
 
             return (
                 <div className="h-screen bg-white pt-20 px-6 flex flex-col items-center">
-                    <Header title={`挑战中 ${step + 1}/10`} onBack={onBack} />
+                    <Header title={`挑战中 ${step + 1}/${CHALLENGE_QUESTION_COUNT}`} onBack={onBack} />
                     <div className={`w-full max-w-sm aspect-square glass-card rounded-[4rem] flex items-center justify-center p-8 border-[15px] transition-all duration-300 ${feedback === 'correct' ? 'border-green-400 scale-105' : feedback === 'wrong' ? 'border-red-400 shake' : 'border-blue-100'}`}>
                         <div className="text-[12rem] bouncy">{EMOJIS[WORDS[current.targetIdx]]}</div>
                     </div>
@@ -379,9 +370,54 @@
             const [hasPlayed, setHasPlayed] = useState(false);
 
             const questions = useMemo(() => {
-                // 随机选择10道题目
-                const shuffled = [...SONG_EXAM_QUESTIONS].sort(() => 0.5 - Math.random());
-                return shuffled.slice(0, 10);
+                // 从所有儿歌中动态生成10道随机题目
+                const generatedQuestions = [];
+                const usedSongs = new Set(); // 避免重复使用同一首儿歌
+
+                while (generatedQuestions.length < CHALLENGE_QUESTION_COUNT) {
+                    // 随机选择一首儿歌
+                    const availableSongs = SONGS.filter(song => !usedSongs.has(song.id));
+                    if (availableSongs.length === 0) break; // 如果所有儿歌都用完了，停止
+
+                    const randomSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
+                    usedSongs.add(randomSong.id);
+
+                    // 为这首儿歌随机选择一句歌词（不能是最后一句，因为需要有下一句作为答案）
+                    const maxIndex = randomSong.content.length - 2; // 留出至少一句作为答案
+                    if (maxIndex < 0) continue; // 如果儿歌太短，跳过
+
+                    const playIndex = Math.floor(Math.random() * (maxIndex + 1));
+                    const playLyrics = [randomSong.content[playIndex]];
+                    const correctAnswer = randomSong.content[playIndex + 1];
+
+                    // 生成错误选项：从其他儿歌中随机选择不同的句子
+                    const wrongOptions = [];
+                    const otherSongs = SONGS.filter(song => song.id !== randomSong.id);
+
+                    while (wrongOptions.length < 2) {
+                        const randomOtherSong = otherSongs[Math.floor(Math.random() * otherSongs.length)];
+                        const randomLine = randomOtherSong.content[Math.floor(Math.random() * randomOtherSong.content.length)];
+
+                        // 确保错误选项不与正确答案重复
+                        if (!wrongOptions.includes(randomLine) && randomLine !== correctAnswer) {
+                            wrongOptions.push(randomLine);
+                        }
+                    }
+
+                    // 创建选项数组：正确答案 + 错误选项，然后随机排序
+                    const allOptions = [correctAnswer, ...wrongOptions];
+                    const shuffledOptions = allOptions.sort(() => 0.5 - Math.random());
+
+                    generatedQuestions.push({
+                        id: generatedQuestions.length + 1,
+                        songId: randomSong.id,
+                        playLyrics: playLyrics,
+                        correct: correctAnswer,
+                        options: shuffledOptions
+                    });
+                }
+
+                return generatedQuestions;
             }, []);
 
             const current = questions[step];
@@ -407,7 +443,7 @@
                     // 答对时才跳到下一题
                     setTimeout(() => {
                         setFeedback(null);
-                        if (step < 9) setStep(s => s + 1);
+                        if (step < CHALLENGE_QUESTION_COUNT - 1) setStep(s => s + 1);
                         else setFinished(true);
                     }, 1500);
                 } else {
@@ -448,7 +484,7 @@
 
             // 进度条颜色
             const getProgressColor = () => {
-                const progress = (step + 1) / 10;
+                const progress = (step + 1) / CHALLENGE_QUESTION_COUNT;
                 if (progress <= 0.3) return 'from-red-400 to-orange-400';
                 if (progress <= 0.6) return 'from-orange-400 to-yellow-400';
                 if (progress <= 0.8) return 'from-yellow-400 to-green-400';
@@ -462,7 +498,7 @@
                         <div className="text-[8rem] mb-6 animate-bounce">🎵</div>
                         <h2 className="text-4xl font-black text-gray-800 mb-4">儿歌挑战完成！</h2>
                         <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 mb-8">
-                            {score}/10
+                            {score}/{CHALLENGE_QUESTION_COUNT}
                         </div>
 
                         {/* 星星评分 */}
@@ -490,16 +526,16 @@
 
             return (
                 <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pt-20 px-6 flex flex-col items-center">
-                    <Header title={`儿歌挑战 ${step + 1}/10`} onBack={onBack} />
+                    <Header title={`儿歌挑战 ${step + 1}/${CHALLENGE_QUESTION_COUNT}`} onBack={onBack} />
 
                     {/* 进度指示器 */}
                     <div className="w-full max-w-md mb-6">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-bold text-gray-600">进度</span>
-                            <span className="text-sm font-bold text-pink-600">{step + 1}/10</span>
+                            <span className="text-sm font-bold text-pink-600">{step + 1}/{CHALLENGE_QUESTION_COUNT}</span>
                         </div>
                         <div className="w-full bg-gray-200 h-4 rounded-full overflow-hidden shadow-inner">
-                            <div className={`h-full bg-gradient-to-r ${getProgressColor()} rounded-full transition-all duration-500`} style={{ width: `${((step + 1) / 10) * 100}%` }} />
+                            <div className={`h-full bg-gradient-to-r ${getProgressColor()} rounded-full transition-all duration-500`} style={{ width: `${((step + 1) / CHALLENGE_QUESTION_COUNT) * 100}%` }} />
                         </div>
                     </div>
 
