@@ -257,15 +257,42 @@
         const SongScreen = ({ onBack, onRead, progress }) => {
             const [sel, setSel] = useState(null);
             if (sel) return (
-                <div className="h-screen bg-pink-50 pt-20 px-4 overflow-y-auto pb-32">
+                <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pt-20 px-4 overflow-y-auto pb-32">
                     <Header title={sel.title} onBack={() => setSel(null)} />
-                    <div className="bg-white p-8 rounded-[3.5rem] shadow-2xl border-t-[15px] border-pink-400 pop-up">
-                        <div className="space-y-6">
-                            {sel.content.map((l, i) => <p key={i} onClick={() => speak(l)} className="text-3xl text-center font-black text-gray-700 active:text-pink-500 py-2 transition-all">{l}</p>)}
+
+                    {/* 装饰性顶部元素 */}
+                    <div className="flex justify-center mb-6">
+                        <div className="text-6xl animate-bounce">🎵</div>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-[3.5rem] shadow-2xl border-t-[15px] border-pink-400 pop-up relative overflow-hidden">
+                        {/* 装饰背景 */}
+                        <div className="absolute inset-0 opacity-5 pointer-events-none">
+                            <div className="absolute top-4 left-4 text-4xl">🎼</div>
+                            <div className="absolute top-4 right-4 text-4xl">🎵</div>
+                            <div className="absolute bottom-4 left-4 text-4xl">🎶</div>
+                            <div className="absolute bottom-4 right-4 text-4xl">🎵</div>
                         </div>
-                        <div className="mt-12 space-y-4">
-                            <button onClick={() => speak(sel.content.join(' '), 0.8)} className="w-full py-7 bg-pink-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-[10px] border-pink-700 active:translate-y-2">🔊 读全文</button>
-                            <button onClick={() => { onRead(sel.id); setSel(null); speak("真了不起！读完啦！"); }} className="w-full py-5 bg-green-400 text-white rounded-[2.5rem] text-xl font-black shadow-lg">我读完啦 ✌️</button>
+
+                        {/* 歌词内容 */}
+                        <div className="relative z-10 space-y-6">
+                            {sel.content.map((l, i) => (
+                                <p key={i} onClick={() => speak(l)} className="text-3xl text-center font-black text-gray-700 active:text-pink-500 py-3 transition-all cursor-pointer hover:bg-pink-50 rounded-xl px-4 leading-relaxed">
+                                    {l}
+                                </p>
+                            ))}
+                        </div>
+
+                        {/* 底部按钮区域 */}
+                        <div className="mt-12 space-y-4 relative z-10">
+                            <button onClick={() => speak(sel.content.join(' '), 0.8)} className="w-full py-6 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-[10px] border-pink-700 active:translate-y-2 flex items-center justify-center gap-3">
+                                <span className="text-4xl">🔊</span>
+                                <span>听完整首儿歌</span>
+                            </button>
+                            <button onClick={() => { onRead(sel.id); setSel(null); speak("真了不起！读完啦！"); }} className="w-full py-5 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-[2.5rem] text-xl font-black shadow-lg border-b-8 border-green-600 active:translate-y-2 flex items-center justify-center gap-3">
+                                <span className="text-2xl">✌️</span>
+                                <span>我读完啦！</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -276,7 +303,7 @@
                     {SONGS.map((s, i) => (
                         <div key={s.id} onClick={() => setSel(s)} className="bg-white p-6 rounded-[2rem] flex items-center justify-between shadow-md border-l-[12px] border-pink-400 active:scale-95 transition-all">
                             <div className="flex items-center gap-5">
-                                <span className="text-5xl">{['🐰','🦊','🐥','🐶','🐱','🐻','🦁','🦒'][i%8]}</span>
+                                <span className="text-5xl">{{'s1':'👶','s2':'🦊','s3':'🚪','s4':'💨','s5':'🎤','s6':'🚿','s7':'📞','s8':'👩'}[s.id] || '🎵'}</span>
                                 <span className="text-2xl font-black text-gray-800">{s.title}</span>
                             </div>
                             {progress.readSongs.includes(s.id) ? <span className="text-green-500 text-2xl font-black">✅</span> : <span className="text-pink-300 font-black">➔</span>}
