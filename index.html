@@ -450,18 +450,18 @@
                             </div>
 
                             {/* Emoji显示 - 主要视觉焦点，预留跳动空间 */}
-                            <div className="text-[10rem] bouncy mb-3 relative z-20 mt-1 pt-2 pb-2">{EMOJIS[WORDS[current.targetIdx]]}</div>
+                            <div className="text-[10rem] bouncy mb-3 relative z-20 mt-4 pt-2 pb-2">{EMOJIS[WORDS[current.targetIdx]]}</div>
 
                             {/* 答对后才显示文字确认 */}
                             {feedback === 'correct' && (
-                                <div className="text-6xl font-black text-green-600 mb-3 relative z-20 drop-shadow-lg">
+                                <div className="text-6xl font-black text-green-600 mb-2 relative z-20 drop-shadow-lg">
                                     {WORDS[current.targetIdx]}
                                 </div>
                             )}
 
                             {/* 点击提示 - 底部 */}
                             {!feedback && (
-                                <div className="mt-3 text-sm font-bold text-pink-500 animate-pulse relative z-20">
+                                <div className="mt-2 text-sm font-bold text-pink-500 animate-pulse relative z-20">
                                     {retryMode ? '🔄 再听听，选择正确的答案吧！' : '👆 点击任意位置发音'}
                                 </div>
                             )}
@@ -887,10 +887,16 @@
                         </div>
                     </div>
 
-                    {/* 播放区域 */}
+                    {/* 融合播放和问题区域 - 参考歌词小侦探设计风格 */}
                     <div
                         onClick={playLyrics}
-                        className="w-full max-w-md glass-card rounded-[4rem] p-8 border-[15px] border-pink-200 mb-6 relative overflow-hidden cursor-pointer active:scale-95 transition-all duration-200"
+                        className={`w-full max-w-md glass-card rounded-[4rem] p-8 border-[15px] transition-all duration-500 cursor-pointer active:scale-95 relative overflow-hidden mb-6 ${
+                            feedback === 'correct'
+                                ? 'border-green-400 scale-105 shadow-green-200 shadow-2xl'
+                                : feedback === 'wrong'
+                                ? 'border-red-400 shake shadow-red-200 shadow-2xl'
+                                : 'border-pink-200 shadow-pink-100'
+                        }`}
                     >
                         {/* 装饰背景 */}
                         <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
@@ -901,17 +907,48 @@
                         </div>
 
                         <div className="text-center relative z-30">
-                            <div className="text-2xl font-black text-pink-600 mb-6 flex items-center justify-center gap-2">
-                                <span className="text-3xl animate-pulse">▶️</span> 听听这段儿歌 <span>🎧</span>
+                            <div className="text-2xl font-black text-pink-600 mb-4 flex items-center justify-center gap-2">
+                                <span className="text-3xl animate-pulse">🎧</span> 听听这段儿歌 <span>🎵</span>
                             </div>
 
+                            <div className="text-3xl font-black text-pink-600 mb-4 flex items-center justify-center gap-3">
+                                <span>🤔</span> 下一句是什么？ <span>🤔</span>
+                            </div>
 
                             {/* 显示歌词 */}
-                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg relative z-30">
+                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg relative z-30 mb-4">
                                 <div className="text-2xl font-black text-gray-700 leading-relaxed">
                                     {current.playLyrics.join('')}
                                 </div>
                             </div>
+
+                            {/* 播放状态指示器 */}
+                            {!feedback && (
+                                <div className="mt-2 p-3 bg-pink-100 rounded-xl border-2 border-pink-300">
+                                    <div className="text-lg font-black text-pink-600 flex items-center justify-center gap-2">
+                                        {!hasPlayed ? (
+                                            <>
+                                                <span>🔊</span> 点击播放儿歌...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>✨</span> 听完了吗？现在请选择答案吧！
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {feedback === 'correct' && (
+                                <div className="text-xl font-black text-green-600 mt-2 animate-bounce text-center">
+                                    ✅ 答对啦！真棒！
+                                </div>
+                            )}
+                            {feedback === 'wrong' && (
+                                <div className="text-2xl font-black text-red-600 mt-2 animate-bounce">
+                                    ❌ 再听听看？
+                                </div>
+                            )}
 
                             {/* 提示按钮 */}
                             <button
@@ -926,49 +963,6 @@
                                     <p className="text-sm text-yellow-800 font-bold">
                                         仔细听歌词，想想下一句最可能是什么哦！
                                     </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* 问题区域 */}
-                    <div className={`w-full max-w-md glass-card rounded-[3rem] p-6 border-[12px] transition-all duration-500 mb-6 ${
-                        feedback === 'correct'
-                            ? 'border-green-400 scale-105 shadow-green-200 shadow-2xl'
-                            : feedback === 'wrong'
-                            ? 'border-red-400 shake shadow-red-200 shadow-2xl'
-                            : 'border-purple-200 shadow-purple-100'
-                    }`}>
-                        <div className="text-center">
-                            <div className="text-4xl font-black text-purple-600 mb-2 flex items-center justify-center gap-3">
-                                <span>🤔</span> 下一句是什么？ <span>🤔</span>
-                            </div>
-
-                            {/* 播放状态指示器 */}
-                            {!hasPlayed && !feedback && (
-                                <div className="mt-4 p-3 bg-blue-100 rounded-xl border-2 border-blue-300 animate-pulse">
-                                    <div className="text-lg font-black text-blue-600 flex items-center justify-center gap-2">
-                                        <span>🔊</span> 正在播放儿歌，请仔细聆听...
-                                    </div>
-                                </div>
-                            )}
-
-                            {hasPlayed && !feedback && (
-                                <div className="mt-4 p-3 bg-green-100 rounded-xl border-2 border-green-300">
-                                    <div className="text-lg font-black text-green-600 flex items-center justify-center gap-2">
-                                        <span>✨</span> 听完了吗？现在请选择答案吧！
-                                    </div>
-                                </div>
-                            )}
-
-                            {feedback === 'correct' && (
-                                <div className="text-2xl font-black text-green-600 mt-2 animate-bounce">
-                                    ✅ 答对啦！真棒！
-                                </div>
-                            )}
-                            {feedback === 'wrong' && (
-                                <div className="text-2xl font-black text-red-600 mt-2 animate-bounce">
-                                    ❌ 再听听看？
                                 </div>
                             )}
                         </div>
