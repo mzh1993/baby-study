@@ -39,7 +39,7 @@
             user-select: none;
         }
         .bouncy { animation: bounce 0.8s infinite alternate ease-in-out; }
-        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+        @keyframes bounce { from { transform: translateY(4px); } to { transform: translateY(-3px); } }
         
         .pop-up { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -82,7 +82,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
 
         // --- 数据配置 (全量整合) ---
         const WORDS = ["小鸡", "见面", "小象", "小羊", "小狗", "手", "拉拉手", "招招手", "皮球", "风", "大树", "小", "大", "火把", "尾巴", "水", "青蛙", "小河", "鸭子", "河马", "乌龟", "门", "水龙头", "幼儿园", "泡泡", "喷", "香皂", "干净", "毛巾", "洗", "车站", "汽车", "小猪", "兔子", "郊游", "月牙", "响", "门铃", "公园", "下棋", "太阳", "画画", "妈妈", "爸爸", "小猫", "朋友", "土", "仓鼠", "洞", "花", "低", "高", "奶奶", "长大", "哥哥", "爷爷", "妹妹", "爱心", "衣服", "头发"];
@@ -91,7 +91,7 @@
 
         // 调试配置：修改这个数字来调整挑战题目数量
         // 调试时设为3，发布时可以改为10或其他数量
-        const CHALLENGE_QUESTION_COUNT = 10;
+        const CHALLENGE_QUESTION_COUNT = 3;
 
         const SONGS = [
             { id: 's1', title: '娃娃的手', content: ['离得远，招招手，', '走近啦，握握手。', '一起来，牵牵手，', '做游戏，钩钩手。', '跳个舞，拍拍手。', '再见啦，挥挥手。', '我们都是好朋友，', '亲亲热热拉拉手。'] },
@@ -308,27 +308,66 @@
             const [score, setScore] = useState(0);
             const [finished, setFinished] = useState(false);
             const [feedback, setFeedback] = useState(null);
+            const [retryMode, setRetryMode] = useState(false);
+            const justPlayedAudioRef = useRef(false);
             const questions = useMemo(() => {
-                return [...Array(CHALLENGE_QUESTION_COUNT)].map(() => {
-                    const targetIdx = Math.floor(Math.random() * WORDS.length);
+                // 创建打乱的索引数组，确保不重复
+                const indices = [...Array(WORDS.length).keys()]; // [0, 1, 2, ..., WORDS.length-1]
+                for (let i = indices.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [indices[i], indices[j]] = [indices[j], indices[i]];
+                }
+
+                // 取前 CHALLENGE_QUESTION_COUNT 个不重复的索引
+                const selectedIndices = indices.slice(0, CHALLENGE_QUESTION_COUNT);
+
+                return selectedIndices.map(targetIdx => {
                     const opts = [WORDS[targetIdx], ...WORDS.filter((_, i) => i !== targetIdx).sort(() => 0.5 - Math.random()).slice(0, 2)].sort(() => 0.5 - Math.random());
                     return { targetIdx, opts };
                 });
             }, []);
 
             const current = questions[step];
-            useEffect(() => { if (!finished) speak(`请找出：${WORDS[current.targetIdx]}`); }, [step, finished]);
+            useEffect(() => {
+                if (!finished && !retryMode && !justPlayedAudioRef.current) {
+                    speak(`请找出：${WORDS[current.targetIdx]}`);
+                }
+                // 每次 step 改变后重置 justPlayedAudioRef
+                justPlayedAudioRef.current = false;
+            }, [step, finished, retryMode]);
 
             const handleAnswer = (ans) => {
                 if (feedback) return;
                 const correct = ans === WORDS[current.targetIdx];
-                if (correct) { speak("答对啦！"); setScore(s => s + 1); setFeedback('correct'); onMaster(current.targetIdx); }
-                else { speak("再找找看？"); setFeedback('wrong'); onWrong(current.targetIdx); }
-                setTimeout(() => {
-                    setFeedback(null);
-                    if (step < CHALLENGE_QUESTION_COUNT - 1) setStep(s => s + 1);
-                    else setFinished(true);
-                }, 1500);
+                if (correct) {
+                    speak("答对啦！");
+                    setScore(s => s + 1);
+                    setFeedback('correct');
+                    onMaster(current.targetIdx);
+                    setRetryMode(false); // 答对后清除重试模式
+                    setTimeout(() => {
+                        setFeedback(null);
+                        if (step < CHALLENGE_QUESTION_COUNT - 1) {
+                            const nextStep = step + 1;
+                            // 在切换到下一题之前，先播放下一题的发音
+                            speak(`请找出：${WORDS[questions[nextStep].targetIdx]}`);
+                            justPlayedAudioRef.current = true; // 标记已经手动播放过
+                            setStep(nextStep);
+                        } else {
+                            setFinished(true);
+                        }
+                    }, 1500);
+                } else {
+                    speak("再找找看？");
+                    setFeedback('wrong');
+                    onWrong(current.targetIdx);
+                    setRetryMode(true); // 进入重试模式
+                    // 答错后重新播放音频，让孩子重新听
+                    setTimeout(() => {
+                        setFeedback(null);
+                        speak(`请找出：${WORDS[current.targetIdx]}`); // 重新播放
+                    }, 1500);
+                }
             };
 
             if (finished) return (
@@ -346,10 +385,46 @@
             return (
                 <div className="h-screen bg-white pt-20 px-6 flex flex-col items-center">
                     <Header title={`挑战中 ${step + 1}/${CHALLENGE_QUESTION_COUNT}`} onBack={onBack} />
-                    <div className={`w-full max-w-sm aspect-square glass-card rounded-[4rem] flex items-center justify-center p-8 border-[15px] transition-all duration-300 ${feedback === 'correct' ? 'border-green-400 scale-105' : feedback === 'wrong' ? 'border-red-400 shake' : 'border-blue-100'}`}>
-                        <div className="text-[12rem] bouncy">{EMOJIS[WORDS[current.targetIdx]]}</div>
+
+                    {/* 发音区域 - 整个区域都可以点击 */}
+                    <div
+                        onClick={() => speak(WORDS[current.targetIdx])}
+                        className={`w-full max-w-sm aspect-square glass-card rounded-[4rem] flex flex-col items-center justify-center p-8 pt-12 pb-12 border-[15px] transition-all duration-300 cursor-pointer active:scale-95 relative overflow-hidden ${feedback === 'correct' ? 'border-green-400 scale-105' : feedback === 'wrong' ? 'border-red-400' : 'border-blue-100'}`}
+                    >
+                        {/* 装饰背景 - 最底层 */}
+                        <div className="absolute inset-0 opacity-5 pointer-events-none z-0">
+                            <div className="absolute top-4 left-4 text-3xl">🔤</div>
+                            <div className="absolute top-4 right-4 text-3xl">📚</div>
+                            <div className="absolute bottom-4 left-4 text-3xl">🎓</div>
+                            <div className="absolute bottom-4 right-4 text-3xl">✨</div>
+                        </div>
+
+                        {/* 主要内容区域 - 中间层 */}
+                        <div className="text-center relative z-10 w-full flex flex-col items-center justify-center">
+                            {/* 发音提示标题 - 顶部 */}
+                            <div className="text-xl font-black text-pink-600 mb-4 flex items-center justify-center gap-2">
+                                <span className="text-2xl animate-pulse">🔊</span> 听听这个字怎么念 <span className="text-2xl animate-pulse">🔊</span>
+                            </div>
+
+                            {/* Emoji显示 - 主要视觉焦点，预留跳动空间 */}
+                            <div className="text-[12rem] bouncy mb-4 relative z-20 mt-2 pt-4 pb-4">{EMOJIS[WORDS[current.targetIdx]]}</div>
+
+                            {/* 答对后才显示文字确认 */}
+                            {feedback === 'correct' && (
+                                <div className="text-7xl font-black text-green-600 mb-4 relative z-20 drop-shadow-lg">
+                                    {WORDS[current.targetIdx]}
+                                </div>
+                            )}
+
+                            {/* 点击提示 - 底部 */}
+                            {!feedback && (
+                                <div className="mt-4 text-sm font-bold text-pink-500 animate-pulse relative z-20">
+                                    {retryMode ? '🔄 再听听，选择正确的答案吧！' : '👆 点击任意位置发音'}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-5 w-full max-w-sm mt-12 mb-32">
+                    <div className="grid grid-cols-1 gap-5 w-full max-w-sm mt-8 mb-32">
                         {current.opts.map(opt => (
                             <button key={opt} onClick={() => handleAnswer(opt)} className="py-7 bg-white rounded-[2.5rem] text-5xl font-black text-gray-700 shadow-xl border-b-[10px] border-gray-100 active:translate-y-2">
                                 {opt}
