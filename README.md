@@ -101,4 +101,56 @@ npm run preview
 
 ---
 
+## 🔍 6. 故障排除
+
+如果遇到以下问题，请按以下步骤解决：
+
+### 问题1：控制台出现 404 错误（index.css、index.tsx、App.tsx）
+
+**原因**：浏览器缓存了旧版本的页面。
+
+**解决方法**：
+
+1. **清除浏览器缓存**：
+   - **Chrome/Edge**：按 `Ctrl+Shift+Delete` (Windows) 或 `Cmd+Shift+Delete` (Mac)
+   - 选择"缓存的图片和文件"
+   - 时间范围选择"全部时间"
+   - 点击"清除数据"
+
+2. **硬刷新页面**：
+   - Windows: `Ctrl+F5` 或 `Ctrl+Shift+R`
+   - Mac: `Cmd+Shift+R`
+
+3. **清除Service Worker缓存**（如果仍无效）：
+   - 打开开发者工具 (F12)
+   - 转到 **Application** 标签
+   - 点击左侧 **Service Workers**
+   - 点击 **Unregister** 注销旧的Service Worker
+   - 刷新页面
+
+4. **检查GitHub Pages部署状态**：
+   - 在GitHub仓库中点击 **Actions** 标签
+   - 确认最新的部署工作流已完成
+   - 如果失败，检查错误信息并修复
+
+### 问题2：页面无法加载或显示空白
+
+**解决方法**：
+
+1. 检查GitHub Pages是否已启用（Settings > Pages）
+2. 确认代码已推送到 `main` 或 `master` 分支
+3. 等待几分钟让GitHub Pages更新（最多可能需要10分钟）
+4. 检查URL是否正确（应为 `username.github.io/repo-name/`）
+
+### 问题3：功能不正常
+
+**解决方法**：
+
+1. 打开浏览器开发者工具 (F12)
+2. 查看 **Console** 标签中的错误信息
+3. 查看 **Network** 标签确认资源是否正常加载
+4. 尝试使用无痕模式打开页面，排除扩展程序干扰
+
+---
+
 祝您和宝贝拥有愉快的 10 分钟亲子互动时光！

@@ -1,12 +1,12 @@
 
-// 动态获取 base 路径
-const BASE_PATH = self.location.pathname.replace(/\/[^\/]*$/, '/') || '/';
+// Service Worker 版本 - 更新此版本号以强制清除旧缓存
+const CACHE_NAME = 'baby-v9';
 
-const CACHE_NAME = 'baby-v8';
+// 使用相对路径，自动适配GitHub Pages子路径
+// Service Worker和index.html在同一目录，所以使用相对路径即可
 const CACHE_URLS = [
-  BASE_PATH,
-  BASE_PATH + 'index.html',
-  BASE_PATH + 'manifest.json'
+  './index.html',
+  './manifest.json'
 ];
 
 self.addEventListener('install', (e) => {
@@ -39,7 +39,7 @@ self.addEventListener('fetch', (e) => {
       return res || fetch(e.request).catch(() => {
         // 如果网络请求失败且缓存中也没有，返回离线页面
         if (e.request.destination === 'document') {
-          return caches.match(BASE_PATH + 'index.html');
+          return caches.match('./index.html');
         }
       });
     })
