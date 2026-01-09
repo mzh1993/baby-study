@@ -7,14 +7,27 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <base href="./">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json" onerror="this.onerror=null; this.href='';">
     <title>宝贝趣学堂 🎈</title>
     
+    <!-- 错误处理：如果无法加载 manifest.json，静默失败 -->
+    <script>
+        // 检查是否在 file:// 协议下运行，如果是则提示用户
+        if (window.location.protocol === 'file:') {
+            console.warn('检测到使用 file:// 协议打开，建议使用本地 HTTP 服务器运行以获得最佳体验');
+        }
+    </script>
+    
+    <!-- Tailwind CSS - 使用官方 CDN (警告不影响功能) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- React 和 ReactDOM - 使用 jsDelivr CDN (更稳定) -->
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone - 使用 jsDelivr CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
 
     <style>
         body { 
@@ -55,6 +68,13 @@
             20%, 80% { transform: translate3d(2px, 0, 0); }
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .animate-ping {
+            animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes ping {
+            75%, 100% { transform: scale(2); opacity: 0; }
         }
     </style>
 </head>
@@ -355,6 +375,8 @@
             const [finished, setFinished] = useState(false);
             const [feedback, setFeedback] = useState(null);
             const [playing, setPlaying] = useState(false);
+            const [showHint, setShowHint] = useState(false);
+            const [hasPlayed, setHasPlayed] = useState(false);
 
             const questions = useMemo(() => {
                 // 随机选择10道题目
@@ -368,75 +390,241 @@
                 if (playing) return;
                 setPlaying(true);
                 speak(current.playLyrics.join(''), 0.8);
-                setTimeout(() => setPlaying(false), 2000);
+                setTimeout(() => {
+                    setPlaying(false);
+                    setHasPlayed(true);
+                }, 2000);
             };
 
             const handleAnswer = (ans) => {
-                if (feedback) return;
+                if (feedback || !hasPlayed) return; // 只有播放后才能选择答案
                 const correct = ans === current.correct;
                 if (correct) {
                     speak("答对啦！真棒！");
                     setScore(s => s + 1);
                     setFeedback('correct');
                     onSongMaster(current.songId);
+                    // 答对时才跳到下一题
+                    setTimeout(() => {
+                        setFeedback(null);
+                        if (step < 9) setStep(s => s + 1);
+                        else setFinished(true);
+                    }, 1500);
                 } else {
                     speak("再听听看？");
                     setFeedback('wrong');
+                    // 答错时重新播放歌词，让孩子重新听
+                    setTimeout(() => {
+                        setFeedback(null);
+                        setHasPlayed(false);
+                        // 重新播放
+                        setTimeout(() => {
+                            playLyrics();
+                        }, 300);
+                    }, 1500);
                 }
-                setTimeout(() => {
-                    setFeedback(null);
-                    if (step < 9) setStep(s => s + 1);
-                    else setFinished(true);
-                }, 1500);
+            };
+
+            // 初始化时自动播放第一题
+            React.useEffect(() => {
+                if (current && step === 0 && !finished && !hasPlayed) {
+                    setTimeout(() => {
+                        playLyrics();
+                    }, 800); // 给页面加载一点时间
+                }
+            }, []);
+
+            // 切换到新题目时自动播放一次
+            React.useEffect(() => {
+                if (current && step > 0 && !finished) {
+                    setHasPlayed(false);
+                    setShowHint(false); // 重置提示状态
+                    // 延迟一点时间自动播放，让UI先更新
+                    setTimeout(() => {
+                        playLyrics();
+                    }, 500);
+                }
+            }, [step]);
+
+            // 进度条颜色
+            const getProgressColor = () => {
+                const progress = (step + 1) / 10;
+                if (progress <= 0.3) return 'from-red-400 to-orange-400';
+                if (progress <= 0.6) return 'from-orange-400 to-yellow-400';
+                if (progress <= 0.8) return 'from-yellow-400 to-green-400';
+                return 'from-green-400 to-blue-400';
             };
 
             if (finished) return (
-                <div className="h-screen pt-20 px-8 flex flex-col items-center justify-center space-y-8 bg-pink-50">
+                <div className="h-screen pt-20 px-8 flex flex-col items-center justify-center space-y-8 bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
                     <Header title="儿歌挑战结果" />
-                    <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up">
-                        <div className="text-[8rem] mb-6">🎵</div>
-                        <h2 className="text-4xl font-black text-gray-800">儿歌挑战完成！</h2>
-                        <div className="text-8xl font-black text-pink-500 my-8">{score}/10</div>
-                        <button onClick={onBack} className="w-full py-6 bg-green-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-8 border-green-700">返回主页</button>
+                    <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up border-b-[15px] border-pink-200">
+                        <div className="text-[8rem] mb-6 animate-bounce">🎵</div>
+                        <h2 className="text-4xl font-black text-gray-800 mb-4">儿歌挑战完成！</h2>
+                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 mb-8">
+                            {score}/10
+                        </div>
+
+                        {/* 星星评分 */}
+                        <div className="flex justify-center gap-2 mb-8">
+                            {[...Array(5)].map((_, i) => (
+                                <span key={i} className={`text-4xl ${i < Math.ceil(score / 2) ? 'text-yellow-400' : 'text-gray-300'}`}>
+                                    ⭐
+                                </span>
+                            ))}
+                        </div>
+
+                        <div className="text-xl font-bold text-gray-600 mb-8">
+                            {score >= 9 ? '🎉 超级棒！你是儿歌小天才！' :
+                             score >= 7 ? '😊 真棒！继续加油！' :
+                             score >= 5 ? '👍 不错哦！再接再厉！' :
+                             '💪 没关系，多听多练就行！'}
+                        </div>
+
+                        <button onClick={onBack} className="w-full py-6 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-8 border-green-600 active:translate-y-2 transition-all">
+                            返回主页 🏠
+                        </button>
                     </div>
                 </div>
             );
 
             return (
-                <div className="h-screen bg-pink-50 pt-20 px-6 flex flex-col items-center">
+                <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pt-20 px-6 flex flex-col items-center">
                     <Header title={`儿歌挑战 ${step + 1}/10`} onBack={onBack} />
 
-                    <div className="w-full max-w-md glass-card rounded-[4rem] p-8 border-[15px] border-pink-200 mb-8">
-                        <div className="text-center">
-                            <div className="text-4xl font-black text-pink-600 mb-6">听听这段儿歌：</div>
-                            <button
-                                onClick={playLyrics}
-                                disabled={playing}
-                                className={`w-24 h-24 rounded-full text-4xl shadow-xl border-b-8 flex items-center justify-center transition-all ${playing ? 'bg-gray-300 border-gray-400 text-gray-500' : 'bg-pink-400 border-pink-600 text-white active:scale-90'}`}
-                            >
-                                {playing ? '🔊' : '🔊'}
-                            </button>
-                            <div className="mt-4 text-2xl font-black text-gray-700">
-                                {current.playLyrics.join('')}
+                    {/* 进度指示器 */}
+                    <div className="w-full max-w-md mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-bold text-gray-600">进度</span>
+                            <span className="text-sm font-bold text-pink-600">{step + 1}/10</span>
+                        </div>
+                        <div className="w-full bg-gray-200 h-4 rounded-full overflow-hidden shadow-inner">
+                            <div className={`h-full bg-gradient-to-r ${getProgressColor()} rounded-full transition-all duration-500`} style={{ width: `${((step + 1) / 10) * 100}%` }} />
+                        </div>
+                    </div>
+
+                    {/* 播放区域 */}
+                    <div
+                        onClick={playLyrics}
+                        className="w-full max-w-md glass-card rounded-[4rem] p-8 border-[15px] border-pink-200 mb-6 relative overflow-hidden cursor-pointer active:scale-95 transition-all duration-200"
+                    >
+                        {/* 装饰背景 */}
+                        <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
+                            <div className="absolute top-2 left-2 text-4xl">🎼</div>
+                            <div className="absolute top-2 right-2 text-4xl">🎵</div>
+                            <div className="absolute bottom-2 left-2 text-4xl">🎶</div>
+                            <div className="absolute bottom-2 right-2 text-4xl">🎵</div>
+                        </div>
+
+                        <div className="text-center relative z-30">
+                            <div className="text-2xl font-black text-pink-600 mb-6 flex items-center justify-center gap-2">
+                                <span className="text-3xl animate-pulse">▶️</span> 听听这段儿歌 <span>🎧</span>
                             </div>
+
+
+                            {/* 显示歌词 */}
+                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg relative z-30">
+                                <div className="text-2xl font-black text-gray-700 leading-relaxed">
+                                    {current.playLyrics.join('')}
+                                </div>
+                            </div>
+
+                            {/* 提示按钮 */}
+                            <button
+                                onClick={() => setShowHint(!showHint)}
+                                className="mt-4 px-6 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-bold hover:bg-blue-200 transition-all"
+                            >
+                                💡 {showHint ? '隐藏提示' : '显示提示'}
+                            </button>
+
+                            {showHint && (
+                                <div className="mt-3 p-3 bg-yellow-100 rounded-xl border-2 border-yellow-300">
+                                    <p className="text-sm text-yellow-800 font-bold">
+                                        仔细听歌词，想想下一句最可能是什么哦！
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    <div className={`w-full max-w-md glass-card rounded-[3rem] p-6 border-[12px] transition-all duration-300 mb-8 ${feedback === 'correct' ? 'border-green-400 scale-105' : feedback === 'wrong' ? 'border-red-400 shake' : 'border-purple-200'}`}>
-                        <div className="text-center text-3xl font-black text-purple-600 mb-4">
-                            下一句是什么？
+                    {/* 问题区域 */}
+                    <div className={`w-full max-w-md glass-card rounded-[3rem] p-6 border-[12px] transition-all duration-500 mb-6 ${
+                        feedback === 'correct'
+                            ? 'border-green-400 scale-105 shadow-green-200 shadow-2xl'
+                            : feedback === 'wrong'
+                            ? 'border-red-400 shake shadow-red-200 shadow-2xl'
+                            : 'border-purple-200 shadow-purple-100'
+                    }`}>
+                        <div className="text-center">
+                            <div className="text-4xl font-black text-purple-600 mb-2 flex items-center justify-center gap-3">
+                                <span>🤔</span> 下一句是什么？ <span>🤔</span>
+                            </div>
+
+                            {/* 播放状态指示器 */}
+                            {!hasPlayed && !feedback && (
+                                <div className="mt-4 p-3 bg-blue-100 rounded-xl border-2 border-blue-300 animate-pulse">
+                                    <div className="text-lg font-black text-blue-600 flex items-center justify-center gap-2">
+                                        <span>🔊</span> 正在播放儿歌，请仔细聆听...
+                                    </div>
+                                </div>
+                            )}
+
+                            {hasPlayed && !feedback && (
+                                <div className="mt-4 p-3 bg-green-100 rounded-xl border-2 border-green-300">
+                                    <div className="text-lg font-black text-green-600 flex items-center justify-center gap-2">
+                                        <span>✨</span> 听完了吗？现在请选择答案吧！
+                                    </div>
+                                </div>
+                            )}
+
+                            {feedback === 'correct' && (
+                                <div className="text-2xl font-black text-green-600 mt-2 animate-bounce">
+                                    ✅ 答对啦！真棒！
+                                </div>
+                            )}
+                            {feedback === 'wrong' && (
+                                <div className="text-2xl font-black text-red-600 mt-2 animate-bounce">
+                                    ❌ 再听听看？
+                                </div>
+                            )}
                         </div>
                     </div>
 
+                    {/* 选项按钮 */}
                     <div className="grid grid-cols-1 gap-4 w-full max-w-md mb-32">
                         {current.options.map((opt, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => handleAnswer(opt)}
-                                className="py-6 bg-white rounded-[2rem] text-3xl font-black text-gray-700 shadow-xl border-b-[8px] border-gray-100 active:translate-y-2 disabled:opacity-50"
-                                disabled={feedback !== null}
+                                className={`py-6 px-4 bg-white rounded-[2rem] text-2xl font-black text-gray-700 shadow-xl border-b-[8px] transition-all duration-300 ${
+                                    feedback === 'correct' && opt === current.correct
+                                        ? 'border-green-400 bg-green-50 text-green-700 scale-105'
+                                        : feedback === 'wrong' && opt === current.correct
+                                        ? 'border-green-400 bg-green-50 text-green-700 scale-105'
+                                        : feedback === 'wrong'
+                                        ? 'border-red-400 bg-red-50 text-red-700'
+                                        : !hasPlayed
+                                        ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'border-gray-100 hover:border-purple-300 hover:bg-purple-50 active:translate-y-2 active:border-b-4'
+                                } disabled:opacity-50 relative overflow-hidden`}
+                                disabled={feedback !== null || !hasPlayed}
                             >
-                                {opt}
+                                {/* 选项编号 */}
+                                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl font-black text-gray-300">
+                                    {String.fromCharCode(65 + idx)}
+                                </div>
+
+                                {/* 选项内容 */}
+                                <div className="pl-8 text-center">
+                                    {opt}
+                                </div>
+
+                                {/* 正确答案标记 */}
+                                {feedback && opt === current.correct && (
+                                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-3xl animate-bounce">
+                                        ✨
+                                    </div>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -530,7 +718,8 @@
     </script>
     <script>
         // 强制清除旧缓存和Service Worker（仅在需要时）
-        if ('serviceWorker' in navigator) {
+        // 只在 HTTP/HTTPS 协议下注册 Service Worker
+        if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
             // 检查是否需要清除旧缓存（通过URL参数控制）
             const urlParams = new URLSearchParams(window.location.search);
             const clearCache = urlParams.get('clearCache') === 'true' || localStorage.getItem('sw_clear_needed') === 'true';
