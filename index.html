@@ -435,6 +435,236 @@
             );
         };
 
+        const SongRecognitionExamScreen = ({ onBack, onSongMaster }) => {
+            const [step, setStep] = useState(0);
+            const [score, setScore] = useState(0);
+            const [finished, setFinished] = useState(false);
+            const [feedback, setFeedback] = useState(null);
+            const [retryMode, setRetryMode] = useState(false);
+            const justPlayedAudioRef = useRef(false);
+
+            const questions = useMemo(() => {
+                // 为每个题目创建3个选项：随机选择3句不同的歌词
+                return [...Array(CHALLENGE_QUESTION_COUNT)].map(() => {
+                    // 从所有儿歌中随机选择3句不同的歌词作为选项
+                    const availableLyrics = [];
+                    SONGS.forEach(song => {
+                        song.content.forEach(lyric => {
+                            availableLyrics.push({ lyric, songTitle: song.title });
+                        });
+                    });
+
+                    // 随机选择3句不同的歌词
+                    const selectedLyrics = [];
+                    while (selectedLyrics.length < 3 && availableLyrics.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * availableLyrics.length);
+                        const selected = availableLyrics.splice(randomIndex, 1)[0];
+                        selectedLyrics.push(selected);
+                    }
+
+                    // 随机选择其中一句作为正确答案播放
+                    const correctIndex = Math.floor(Math.random() * 3);
+                    const correctLyric = selectedLyrics[correctIndex];
+
+                    // 选项是这3句歌词
+                    const options = selectedLyrics.map(item => item.lyric);
+
+                    return {
+                        correctIndex,
+                        correctLyric: correctLyric.lyric,
+                        correctSongTitle: correctLyric.songTitle,
+                        options: options.sort(() => 0.5 - Math.random()) // 打乱选项顺序
+                    };
+                });
+            }, []);
+
+            const current = questions[step];
+
+            useEffect(() => {
+                if (!finished && !retryMode && !justPlayedAudioRef.current) {
+                    // 播放正确的那句歌词
+                    speak(current.correctLyric, 0.8);
+                }
+                // 每次 step 改变后重置 justPlayedAudioRef
+                justPlayedAudioRef.current = false;
+            }, [step, finished, retryMode]);
+
+            const handleAnswer = (ans) => {
+                if (feedback) return;
+                const correct = ans === current.correctLyric;
+                if (correct) {
+                    speak("答对啦！真棒！");
+                    setScore(s => s + 1);
+                    setFeedback('correct');
+                    // 找到对应的儿歌ID并标记为掌握
+                    const song = SONGS.find(s => s.title === current.correctSongTitle);
+                    if (song) onSongMaster(song.id);
+                    setRetryMode(false); // 答对后清除重试模式
+                    setTimeout(() => {
+                        setFeedback(null);
+                        if (step < CHALLENGE_QUESTION_COUNT - 1) {
+                            const nextStep = step + 1;
+                            // 在切换到下一题之前，先播放下一题的正确歌词
+                            const nextQuestion = questions[nextStep];
+                            speak(nextQuestion.correctLyric, 0.8);
+                            justPlayedAudioRef.current = true; // 标记已经手动播放过
+                            setStep(nextStep);
+                        } else {
+                            setFinished(true);
+                        }
+                    }, 1500);
+                } else {
+                    speak("再听听看？");
+                    setFeedback('wrong');
+                    setRetryMode(true); // 进入重试模式
+                    // 答错后重新播放正确歌词，让孩子重新听
+                    setTimeout(() => {
+                        setFeedback(null);
+                        speak(current.correctLyric, 0.8); // 重新播放
+                    }, 1500);
+                }
+            };
+
+            if (finished) return (
+                <div className="h-screen pt-20 px-8 flex flex-col items-center justify-center space-y-8 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+                    <Header title="歌词侦探结果" />
+                    <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up border-b-[15px] border-purple-200">
+                        <div className="text-[8rem] mb-6 animate-bounce">🕵️</div>
+                        <h2 className="text-4xl font-black text-gray-800 mb-4">歌词侦探挑战完成！</h2>
+                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 mb-8">
+                            {score}/{CHALLENGE_QUESTION_COUNT}
+                        </div>
+
+                        {/* 星星评分 */}
+                        <div className="flex justify-center gap-2 mb-8">
+                            {[...Array(5)].map((_, i) => (
+                                <span key={i} className={`text-4xl ${i < Math.ceil(score / 2) ? 'text-yellow-400' : 'text-gray-300'}`}>
+                                    ⭐
+                                </span>
+                            ))}
+                        </div>
+
+                        <div className="text-xl font-bold text-gray-600 mb-8">
+                            {score >= 9 ? '🎉 超级棒！你是歌词侦探！' :
+                             score >= 7 ? '😊 真棒！耳朵真灵！' :
+                             score >= 5 ? '👍 不错哦！多听听歌词吧！' :
+                             '💪 没关系，多练习就行！'}
+                        </div>
+
+                        <button onClick={onBack} className="w-full py-6 bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-8 border-purple-600 active:translate-y-2 transition-all">
+                            返回主页 🎼
+                        </button>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pt-20 px-6 flex flex-col items-center">
+                    <Header title={`歌词侦探 ${step + 1}/${CHALLENGE_QUESTION_COUNT}`} onBack={onBack} />
+
+                    {/* 进度指示器 */}
+                    <div className="w-full max-w-md mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-bold text-gray-600">进度</span>
+                            <span className="text-sm font-bold text-purple-600">{step + 1}/{CHALLENGE_QUESTION_COUNT}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 h-4 rounded-full overflow-hidden shadow-inner">
+                            <div className={`h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full transition-all duration-500`} style={{ width: `${((step + 1) / CHALLENGE_QUESTION_COUNT) * 100}%` }} />
+                        </div>
+                    </div>
+
+                    {/* 播放区域 */}
+                    <div
+                        onClick={() => {
+                            speak(current.correctLyric, 0.8);
+                        }}
+                        className={`w-full max-w-md glass-card rounded-[4rem] p-8 border-[15px] transition-all duration-300 cursor-pointer active:scale-95 relative overflow-hidden mb-6 ${
+                            feedback === 'correct'
+                                ? 'border-green-400 scale-105 shadow-green-200 shadow-2xl'
+                                : feedback === 'wrong'
+                                ? 'border-red-400 shadow-red-200 shadow-2xl'
+                                : 'border-purple-200 shadow-purple-100'
+                        }`}
+                    >
+                        {/* 装饰背景 */}
+                        <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
+                            <div className="absolute top-2 left-2 text-4xl">🎼</div>
+                            <div className="absolute top-2 right-2 text-4xl">🎵</div>
+                            <div className="absolute bottom-2 left-2 text-4xl">🎧</div>
+                            <div className="absolute bottom-2 right-2 text-4xl">🕵️</div>
+                        </div>
+
+                        <div className="text-center relative z-30">
+                            <div className="text-2xl font-black text-purple-600 mb-4 flex items-center justify-center gap-2">
+                                <span className="text-3xl animate-pulse">🎧</span> 听听这段儿歌 <span>🎵</span>
+                            </div>
+
+                            <div className="text-3xl font-black text-purple-600 mb-4 flex items-center justify-center gap-3">
+                                <span>🤔</span> 这是哪句歌词？ <span>🤔</span>
+                            </div>
+
+                            {/* 播放状态指示器 */}
+                            {!feedback && (
+                                <div className="mt-2 p-3 bg-purple-100 rounded-xl border-2 border-purple-300">
+                                    <div className="text-lg font-black text-purple-600 flex items-center justify-center gap-2">
+                                        <span>🔊</span> 点击播放歌词...
+                                    </div>
+                                </div>
+                            )}
+
+                            {feedback === 'correct' && (
+                                <div className="text-xl font-black text-green-600 mt-2 animate-bounce text-center">
+                                    ✅ 答对啦！<br/>这是《{current.correctSongTitle}》里的歌词
+                                </div>
+                            )}
+                            {feedback === 'wrong' && (
+                                <div className="text-2xl font-black text-red-600 mt-2 animate-bounce">
+                                    ❌ 再听听看？
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 选项按钮 */}
+                    <div className="grid grid-cols-1 gap-4 w-full max-w-md mb-32">
+                        {current.options.map((opt, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => handleAnswer(opt)}
+                                className={`py-4 px-4 bg-white rounded-[2rem] text-xl font-black text-gray-700 shadow-xl border-b-[8px] transition-all duration-300 ${
+                                    feedback === 'correct' && opt === current.correctLyric
+                                        ? 'border-green-400 bg-green-50 text-green-700 scale-105'
+                                        : feedback === 'wrong' && opt === current.correctLyric
+                                        ? 'border-green-400 bg-green-50 text-green-700 scale-105'
+                                        : feedback === 'wrong'
+                                        ? 'border-red-400 bg-red-50 text-red-700'
+                                        : 'border-gray-100 hover:border-purple-300 hover:bg-purple-50 active:translate-y-2 active:border-b-4'
+                                } disabled:opacity-50 relative overflow-hidden`}
+                                disabled={feedback !== null}
+                            >
+                                {/* 选项编号 */}
+                                <div className="absolute left-4 top-4 text-2xl font-black text-gray-300">
+                                    {String.fromCharCode(65 + idx)}
+                                </div>
+
+                                {/* 选项内容 */}
+                                <div className="pl-12 pr-4 text-left leading-relaxed">
+                                    {opt}
+                                </div>
+
+                                {/* 正确答案标记 */}
+                                {feedback && opt === current.correctLyric && (
+                                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-3xl animate-bounce">
+                                        ✨
+                                    </div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
         const SongExamScreen = ({ onBack, onSongMaster }) => {
             const [step, setStep] = useState(0);
             const [score, setScore] = useState(0);
@@ -807,6 +1037,10 @@
                                     <span className="text-[8rem] mb-4">🎈</span>
                                     <h3 className="text-4xl font-black text-orange-600">识字小标兵</h3>
                                 </button>
+                                <button onClick={() => setMode('EXAM_SONG_RECOG')} className="bg-white p-12 rounded-[4rem] shadow-2xl border-b-[15px] border-purple-200 flex flex-col items-center active:scale-95 transition-all">
+                                    <span className="text-[8rem] mb-4">🕵️</span>
+                                    <h3 className="text-4xl font-black text-purple-600">歌词小侦探</h3>
+                                </button>
                                 <button onClick={() => setMode('EXAM_SONGS')} className="bg-white p-12 rounded-[4rem] shadow-2xl border-b-[15px] border-pink-200 flex flex-col items-center active:scale-95 transition-all">
                                     <span className="text-[8rem] mb-4">🎵</span>
                                     <h3 className="text-4xl font-black text-pink-600">儿歌小能手</h3>
@@ -818,6 +1052,7 @@
                         </div>
                     )}
                     {mode === 'EXAM_WORDS' && <ExamScreen onBack={() => setMode('EXAM_SELECT')} onMaster={handleMaster} onWrong={handleWrong} />}
+                    {mode === 'EXAM_SONG_RECOG' && <SongRecognitionExamScreen onBack={() => setMode('EXAM_SELECT')} onSongMaster={handleSongExamMaster} />}
                     {mode === 'EXAM_SONGS' && <SongExamScreen onBack={() => setMode('EXAM_SELECT')} onSongMaster={handleSongExamMaster} />}
                     <Navbar active={mode} setMode={setMode} />
                 </div>
