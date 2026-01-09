@@ -80,6 +80,20 @@
             { id: 's8', title: '妈妈', content: ['你给我洗脸，', '你给我梳头发，', '你给我换衣服，', '你是我的妈妈。', '我给洋娃娃洗脸，', '我给洋娃娃梳头发，', '我是洋娃娃的妈妈。'] }
         ];
 
+        // 儿歌歌词挑战题目数据
+        const SONG_EXAM_QUESTIONS = [
+            { id: 1, songId: 's1', playLyrics: ['离得远，招招手，'], correct: '走近啦，握握手。', options: ['走近啦，握握手。', '跳个舞，拍拍手。', '我们都是好朋友，'] },
+            { id: 2, songId: 's1', playLyrics: ['一起来，牵牵手，'], correct: '做游戏，钩钩手。', options: ['做游戏，钩钩手。', '再见啦，挥挥手。', '亲亲热热拉拉手。'] },
+            { id: 3, songId: 's2', playLyrics: ['大公鸡，花尾巴，'], correct: '走来走去像朵花.', options: ['走来走去像朵花.', '跑来走去像火把。', '要当妈妈小尾巴。'] },
+            { id: 4, songId: 's2', playLyrics: ['小狐狸，红尾巴，'], correct: '跑来走去像火把。', options: ['跑来走去像火把。', '走来走去像朵花.', '“哼哼”一声摇两下。'] },
+            { id: 5, songId: 's3', playLyrics: ['我一个人在家的时候，'], correct: '总想爸爸妈妈来敲门。', options: ['总想爸爸妈妈来敲门。', '总想妈妈来敲门。', '朋友总会来敲门。'] },
+            { id: 6, songId: 's3', playLyrics: ['我们都在家的时候，'], correct: '朋友总会来敲门。', options: ['朋友总会来敲门。', '总想爸爸来敲门。', '总想妈妈来敲门。'] },
+            { id: 7, songId: 's4', playLyrics: ['大风没有家，'], correct: '它在找妈妈。', options: ['它在找妈妈。', '我把门开开，', '你的家，在我家'] },
+            { id: 8, songId: 's5', playLyrics: ['小鸡唱歌，叽叽叽。'], correct: '小狗唱歌，汪汪汪。', options: ['小狗唱歌，汪汪汪。', '老虎唱歌，嗷嗷嗷。', '大家在一起，没关系。'] },
+            { id: 9, songId: 's6', playLyrics: ['大白象，笑眯眯，'], correct: '它请大家洗淋浴。', options: ['它请大家洗淋浴。', '小兔子，小花鸡，', '长鼻子喷水像下雨。'] },
+            { id: 10, songId: 's8', playLyrics: ['你给我洗脸，'], correct: '你给我梳头发，', options: ['你给我梳头发，', '你是我的妈妈。', '我是洋娃娃的妈妈。'] }
+        ];
+
         const CARD_COLORS = ['border-red-400', 'border-blue-400', 'border-green-400', 'border-yellow-400', 'border-purple-400', 'border-pink-400', 'border-orange-400'];
 
         // --- 工具函数 ---
@@ -335,6 +349,101 @@
             );
         };
 
+        const SongExamScreen = ({ onBack, onSongMaster }) => {
+            const [step, setStep] = useState(0);
+            const [score, setScore] = useState(0);
+            const [finished, setFinished] = useState(false);
+            const [feedback, setFeedback] = useState(null);
+            const [playing, setPlaying] = useState(false);
+
+            const questions = useMemo(() => {
+                // 随机选择10道题目
+                const shuffled = [...SONG_EXAM_QUESTIONS].sort(() => 0.5 - Math.random());
+                return shuffled.slice(0, 10);
+            }, []);
+
+            const current = questions[step];
+
+            const playLyrics = () => {
+                if (playing) return;
+                setPlaying(true);
+                speak(current.playLyrics.join(''), 0.8);
+                setTimeout(() => setPlaying(false), 2000);
+            };
+
+            const handleAnswer = (ans) => {
+                if (feedback) return;
+                const correct = ans === current.correct;
+                if (correct) {
+                    speak("答对啦！真棒！");
+                    setScore(s => s + 1);
+                    setFeedback('correct');
+                    onSongMaster(current.songId);
+                } else {
+                    speak("再听听看？");
+                    setFeedback('wrong');
+                }
+                setTimeout(() => {
+                    setFeedback(null);
+                    if (step < 9) setStep(s => s + 1);
+                    else setFinished(true);
+                }, 1500);
+            };
+
+            if (finished) return (
+                <div className="h-screen pt-20 px-8 flex flex-col items-center justify-center space-y-8 bg-pink-50">
+                    <Header title="儿歌挑战结果" />
+                    <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up">
+                        <div className="text-[8rem] mb-6">🎵</div>
+                        <h2 className="text-4xl font-black text-gray-800">儿歌挑战完成！</h2>
+                        <div className="text-8xl font-black text-pink-500 my-8">{score}/10</div>
+                        <button onClick={onBack} className="w-full py-6 bg-green-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-8 border-green-700">返回主页</button>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="h-screen bg-pink-50 pt-20 px-6 flex flex-col items-center">
+                    <Header title={`儿歌挑战 ${step + 1}/10`} onBack={onBack} />
+
+                    <div className="w-full max-w-md glass-card rounded-[4rem] p-8 border-[15px] border-pink-200 mb-8">
+                        <div className="text-center">
+                            <div className="text-4xl font-black text-pink-600 mb-6">听听这段儿歌：</div>
+                            <button
+                                onClick={playLyrics}
+                                disabled={playing}
+                                className={`w-24 h-24 rounded-full text-4xl shadow-xl border-b-8 flex items-center justify-center transition-all ${playing ? 'bg-gray-300 border-gray-400 text-gray-500' : 'bg-pink-400 border-pink-600 text-white active:scale-90'}`}
+                            >
+                                {playing ? '🔊' : '🔊'}
+                            </button>
+                            <div className="mt-4 text-2xl font-black text-gray-700">
+                                {current.playLyrics.join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={`w-full max-w-md glass-card rounded-[3rem] p-6 border-[12px] transition-all duration-300 mb-8 ${feedback === 'correct' ? 'border-green-400 scale-105' : feedback === 'wrong' ? 'border-red-400 shake' : 'border-purple-200'}`}>
+                        <div className="text-center text-3xl font-black text-purple-600 mb-4">
+                            下一句是什么？
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 w-full max-w-md mb-32">
+                        {current.options.map((opt, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => handleAnswer(opt)}
+                                className="py-6 bg-white rounded-[2rem] text-3xl font-black text-gray-700 shadow-xl border-b-[8px] border-gray-100 active:translate-y-2 disabled:opacity-50"
+                                disabled={feedback !== null}
+                            >
+                                {opt}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
         const Main = () => {
             const [mode, setMode] = useState('HOME');
             const [confetti, setConfetti] = useState(false);
@@ -376,6 +485,14 @@
                 });
             };
 
+            const handleSongExamMaster = (songId) => {
+                setProgress(p => {
+                    const isNew = !p.readSongs.includes(songId);
+                    if (isNew) triggerWin();
+                    return { ...p, readSongs: isNew ? [...p.readSongs, songId] : p.readSongs, daily: isNew ? p.daily + 1 : p.daily };
+                });
+            };
+
             return (
                 <div className="min-h-screen">
                     {confetti && <Confetti />}
@@ -391,6 +508,10 @@
                                     <span className="text-[8rem] mb-4">🎈</span>
                                     <h3 className="text-4xl font-black text-orange-600">识字小标兵</h3>
                                 </button>
+                                <button onClick={() => setMode('EXAM_SONGS')} className="bg-white p-12 rounded-[4rem] shadow-2xl border-b-[15px] border-pink-200 flex flex-col items-center active:scale-95 transition-all">
+                                    <span className="text-[8rem] mb-4">🎵</span>
+                                    <h3 className="text-4xl font-black text-pink-600">儿歌小能手</h3>
+                                </button>
                                 <div className="bg-pink-100 p-8 rounded-[3rem] text-center border-2 border-pink-200">
                                     <p className="text-pink-600 font-black">💡 亲子时刻：请念出题目让宝宝选</p>
                                 </div>
@@ -398,6 +519,7 @@
                         </div>
                     )}
                     {mode === 'EXAM_WORDS' && <ExamScreen onBack={() => setMode('EXAM_SELECT')} onMaster={handleMaster} onWrong={handleWrong} />}
+                    {mode === 'EXAM_SONGS' && <SongExamScreen onBack={() => setMode('EXAM_SELECT')} onSongMaster={handleSongExamMaster} />}
                     <Navbar active={mode} setMode={setMode} />
                 </div>
             );
