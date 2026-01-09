@@ -218,7 +218,7 @@
             useEffect(() => { speak(word); }, [word]);
 
             return (
-                <div className="h-screen bg-white pt-20 px-4 flex flex-col items-center">
+                <div className="h-screen overflow-y-auto bg-white pt-20 px-4 flex flex-col items-center">
                     <Header title="快来认认它" onBack={onBack} />
                     <div className="w-full max-w-sm flex-1 max-h-[55vh]">
                         <div className={`h-full w-full glass-card rounded-[4rem] flex flex-col items-center justify-center p-8 border-[12px] transition-all duration-500 ${CARD_COLORS[wordIndex % CARD_COLORS.length]}`}>
@@ -240,7 +240,7 @@
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-32">
-                        <button onClick={() => setIdx(i=>(i+1)%WORDS.length)} className="py-6 bg-gray-100 text-gray-400 rounded-[2rem] font-black text-xl border-b-4 border-gray-200 active:translate-y-1">在学中 🧐</button>
+                        <button onClick={() => speak("继续学习！")} className="py-6 bg-gray-100 text-gray-400 rounded-[2rem] font-black text-xl border-b-4 border-gray-200 active:translate-y-1">在学中 🧐</button>
                         <button onClick={() => { speak("学会啦！"); onMaster(wordIndex); setIdx(i => (i + 1) % WORDS.length); }} className={`py-6 rounded-[2rem] text-xl font-black text-white shadow-lg border-b-8 ${isMastered ? 'bg-green-500 border-green-700' : 'bg-green-400 border-green-600 active:translate-y-1'}`}>
                             {isMastered ? '学会啦 ✅' : '学会啦 🏆'}
                         </button>
