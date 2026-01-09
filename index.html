@@ -407,8 +407,37 @@
         root.render(<Main />);
     </script>
     <script>
+        // 强制清除旧缓存和Service Worker（仅在需要时）
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(() => {});
+            // 检查是否需要清除旧缓存（通过URL参数控制）
+            const urlParams = new URLSearchParams(window.location.search);
+            const clearCache = urlParams.get('clearCache') === 'true' || localStorage.getItem('sw_clear_needed') === 'true';
+            
+            if (clearCache) {
+                // 先注销所有旧的Service Worker
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                    }
+                    // 清除所有缓存
+                    if ('caches' in window) {
+                        caches.keys().then(function(names) {
+                            for (let name of names) {
+                                caches.delete(name);
+                            }
+                            localStorage.removeItem('sw_clear_needed');
+                            // 清除缓存后重新注册新的Service Worker
+                            setTimeout(() => {
+                                navigator.serviceWorker.register('./sw.js?v=10').catch(() => {});
+                                location.reload();
+                            }, 100);
+                        });
+                    }
+                });
+            } else {
+                // 正常注册Service Worker
+                navigator.serviceWorker.register('./sw.js?v=10').catch(() => {});
+            }
         }
     </script>
 </body>

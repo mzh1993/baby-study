@@ -1,6 +1,6 @@
 
 // Service Worker 版本 - 更新此版本号以强制清除旧缓存
-const CACHE_NAME = 'baby-v9';
+const CACHE_NAME = 'baby-v10';
 
 // 使用相对路径，自动适配GitHub Pages子路径
 // Service Worker和index.html在同一目录，所以使用相对路径即可
@@ -34,6 +34,18 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  const url = e.request.url;
+  
+  // 拦截对不存在文件的请求，返回空响应避免404错误
+  if (url.includes('index.css') || url.includes('index.tsx') || url.includes('App.tsx')) {
+    e.respondWith(new Response('', {
+      status: 200,
+      statusText: 'OK',
+      headers: { 'Content-Type': 'text/css' }
+    }));
+    return;
+  }
+  
   e.respondWith(
     caches.match(e.request).then((res) => {
       return res || fetch(e.request).catch(() => {

@@ -107,31 +107,34 @@ npm run preview
 
 ### 问题1：控制台出现 404 错误（index.css、index.tsx、App.tsx）
 
-**原因**：浏览器缓存了旧版本的页面。
+**原因**：浏览器缓存了旧版本的页面，或者Service Worker缓存了旧版本。
 
-**解决方法**：
+**快速解决方法**（按顺序尝试）：
 
-1. **清除浏览器缓存**：
-   - **Chrome/Edge**：按 `Ctrl+Shift+Delete` (Windows) 或 `Cmd+Shift+Delete` (Mac)
-   - 选择"缓存的图片和文件"
-   - 时间范围选择"全部时间"
-   - 点击"清除数据"
+1. **方法一：强制清除缓存（最简单）**：
+   - 在浏览器地址栏的URL后面添加 `?clearCache=true`
+   - 例如：`https://your-username.github.io/baby-fun-learning/?clearCache=true`
+   - 按回车，页面会自动清除所有缓存并重新加载
 
-2. **硬刷新页面**：
+2. **方法二：硬刷新页面**：
    - Windows: `Ctrl+F5` 或 `Ctrl+Shift+R`
    - Mac: `Cmd+Shift+R`
+   - 如果还不行，尝试 `Ctrl+Shift+Delete` 清除浏览器缓存
 
-3. **清除Service Worker缓存**（如果仍无效）：
+3. **方法三：手动清除Service Worker**（如果前两种方法无效）：
    - 打开开发者工具 (F12)
    - 转到 **Application** 标签
    - 点击左侧 **Service Workers**
-   - 点击 **Unregister** 注销旧的Service Worker
+   - 点击 **Unregister** 注销所有Service Worker
+   - 点击左侧 **Cache Storage**，删除所有缓存
    - 刷新页面
 
-4. **检查GitHub Pages部署状态**：
+4. **方法四：检查GitHub Pages部署状态**：
    - 在GitHub仓库中点击 **Actions** 标签
    - 确认最新的部署工作流已完成
    - 如果失败，检查错误信息并修复
+
+**注意**：新版本的Service Worker会自动拦截这些404请求，所以即使看到这些错误也不会影响功能。但为了彻底解决，建议使用方法一清除缓存。
 
 ### 问题2：页面无法加载或显示空白
 
