@@ -87,11 +87,11 @@
         // --- 数据配置 (全量整合) ---
         const WORDS = ["小鸡", "见面", "小象", "小羊", "小狗", "手", "拉拉手", "招招手", "皮球", "风", "大树", "小", "大", "火把", "尾巴", "水", "青蛙", "小河", "鸭子", "河马", "乌龟", "门", "水龙头", "幼儿园", "泡泡", "喷", "香皂", "干净", "毛巾", "洗", "车站", "汽车", "小猪", "兔子", "郊游", "月牙", "响", "门铃", "公园", "下棋", "太阳", "画画", "妈妈", "爸爸", "小猫", "朋友", "土", "仓鼠", "洞", "花", "低", "高", "奶奶", "长大", "哥哥", "爷爷", "妹妹", "爱心", "衣服", "头发"];
         
-        const EMOJIS = {"小鸡":"🐥","见面":"🤝","小象":"🐘","小羊":"🐑","小狗":"🐶","手":"✋","拉拉手":"🤝","招招手":"🙋","皮球":"🏀","风":"💨","大树":"🌳","小":"🐜","大":"🐘","火把":"🔥","尾巴":"🐒","水":"💧","青蛙":"🐸","小河":"🌊","鸭子":"🦆","河马":"🦛","乌龟":"🐢","门":"🚪","水龙头":"🚰","幼儿园":"🏫","泡泡":"🫧","喷":"🚿","香皂":"🧼","干净":"✨","毛巾":"🧣","洗":"🛁","车站":"🚉","汽车":"🚗","小猪":"🐷","兔子":"🐰","郊游":"🏕️","月牙":"🌙","响":"🔔","门铃":"🛎️","公园":"🎠","下棋":"♟️","太阳":"☀️","画画":"🎨","妈妈":"👩","爸爸":"👨","小猫":"🐱","朋友":"👫","土":"🪴","仓鼠":"🐹","洞":"🕳️","花":"🌸","低":"👇","高":"👆","奶奶":"👵","长大":"🌱","哥哥":"👦","爷爷":"👴","妹妹":"👧","爱心":"❤️","衣服":"👕","头发":"💇"};
+        const EMOJIS = {"小鸡":"🐥","见面":"🙋","小象":"🐘","小羊":"🐑","小狗":"🐶","手":"✋","拉拉手":"🤝","招招手":"👋","皮球":"🏀","风":"💨","大树":"🌳","小":"🐜","大":"🐘","火把":"🔥","尾巴":"🐒","水":"💧","青蛙":"🐸","小河":"🌊","鸭子":"🦆","河马":"🦛","乌龟":"🐢","门":"🚪","水龙头":"🚰","幼儿园":"🏫","泡泡":"🫧","喷":"🚿","香皂":"🧼","干净":"✨","毛巾":"🧣","洗":"🛁","车站":"🚉","汽车":"🚗","小猪":"🐷","兔子":"🐰","郊游":"🏕️","月牙":"🌙","响":"🔔","门铃":"🛎️","公园":"🏞️","下棋":"♟️","太阳":"☀️","画画":"🎨","妈妈":"👩","爸爸":"👨","小猫":"🐱","朋友":"👫","土":"🌱","仓鼠":"🐹","洞":"🕳️","花":"🌸","低":"👇","高":"👆","奶奶":"👵","长大":"🎂","哥哥":"👦","爷爷":"👴","妹妹":"👧","爱心":"❤️","衣服":"👕","头发":"💇"};
 
         // 调试配置：修改这个数字来调整挑战题目数量
         // 调试时设为3，发布时可以改为10或其他数量
-        const CHALLENGE_QUESTION_COUNT = 3;
+        const CHALLENGE_QUESTION_COUNT = 10;
 
         const SONGS = [
             { id: 's1', title: '娃娃的手', content: ['离得远，招招手，', '走近啦，握握手。', '一起来，牵牵手，', '做游戏，钩钩手。', '跳个舞，拍拍手。', '再见啦，挥挥手。', '我们都是好朋友，', '亲亲热热拉拉手。'] },
@@ -201,16 +201,27 @@
         };
 
         const CardScreen = ({ onBack, onMaster, progress }) => {
+            // 创建随机排序的索引数组
+            const randomIndices = useMemo(() => {
+                const indices = [...Array(WORDS.length).keys()]; // [0, 1, 2, ..., WORDS.length-1]
+                for (let i = indices.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [indices[i], indices[j]] = [indices[j], indices[i]];
+                }
+                return indices;
+            }, []); // 空依赖数组，只在组件首次渲染时生成随机顺序
+
             const [idx, setIdx] = useState(0);
-            const word = WORDS[idx];
-            const isMastered = progress.mastered.includes(idx);
-            useEffect(() => { speak(word); }, [idx]);
+            const wordIndex = randomIndices[idx];
+            const word = WORDS[wordIndex];
+            const isMastered = progress.mastered.includes(wordIndex);
+            useEffect(() => { speak(word); }, [word]);
 
             return (
                 <div className="h-screen bg-white pt-20 px-4 flex flex-col items-center">
                     <Header title="快来认认它" onBack={onBack} />
                     <div className="w-full max-w-sm flex-1 max-h-[55vh]">
-                        <div className={`h-full w-full glass-card rounded-[4rem] flex flex-col items-center justify-center p-8 border-[12px] transition-all duration-500 ${CARD_COLORS[idx % CARD_COLORS.length]}`}>
+                        <div className={`h-full w-full glass-card rounded-[4rem] flex flex-col items-center justify-center p-8 border-[12px] transition-all duration-500 ${CARD_COLORS[wordIndex % CARD_COLORS.length]}`}>
                             <div className="text-[11rem] drop-shadow-2xl mb-4 pop-up">{EMOJIS[word] || "✨"}</div>
                             <h2 className="text-8xl font-black text-gray-800 tracking-tighter drop-shadow-sm">{word}</h2>
                             <button onClick={() => speak(word)} className="mt-8 bg-yellow-400 w-20 h-20 rounded-full text-4xl shadow-xl flex items-center justify-center active:scale-90 border-b-8 border-yellow-600">🔊</button>
@@ -230,7 +241,7 @@
 
                     <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-32">
                         <button onClick={() => setIdx(i=>(i+1)%WORDS.length)} className="py-6 bg-gray-100 text-gray-400 rounded-[2rem] font-black text-xl border-b-4 border-gray-200 active:translate-y-1">在学中 🧐</button>
-                        <button onClick={() => { speak("学会啦！"); onMaster(idx); setIdx(i => (i + 1) % WORDS.length); }} className={`py-6 rounded-[2rem] text-xl font-black text-white shadow-lg border-b-8 ${isMastered ? 'bg-green-500 border-green-700' : 'bg-green-400 border-green-600 active:translate-y-1'}`}>
+                        <button onClick={() => { speak("学会啦！"); onMaster(wordIndex); setIdx(i => (i + 1) % WORDS.length); }} className={`py-6 rounded-[2rem] text-xl font-black text-white shadow-lg border-b-8 ${isMastered ? 'bg-green-500 border-green-700' : 'bg-green-400 border-green-600 active:translate-y-1'}`}>
                             {isMastered ? '学会啦 ✅' : '学会啦 🏆'}
                         </button>
                     </div>
