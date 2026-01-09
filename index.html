@@ -570,17 +570,24 @@
             const justPlayedAudioRef = useRef(false);
 
             const questions = useMemo(() => {
-                // 为每个题目创建3个选项：随机选择3句不同的歌词
-                return [...Array(CHALLENGE_QUESTION_COUNT)].map(() => {
-                    // 从所有儿歌中随机选择3句不同的歌词作为选项
+                // 为每个题目创建3个选项：随机选择3句不同的内容（儿歌+诗词）
+                const generatedQuestions = [...Array(CHALLENGE_QUESTION_COUNT)].map(() => {
+                    // 从所有儿歌和诗词中随机选择3句不同的内容作为选项
                     const availableLyrics = [];
+                    // 添加儿歌内容
                     SONGS.forEach(song => {
                         song.content.forEach(lyric => {
-                            availableLyrics.push({ lyric, songTitle: song.title });
+                            availableLyrics.push({ lyric, title: song.title, type: 'song', id: song.id });
+                        });
+                    });
+                    // 添加诗词内容
+                    POEMS.forEach(poem => {
+                        poem.content.forEach(line => {
+                            availableLyrics.push({ lyric: line, title: poem.title, type: 'poem', id: poem.id });
                         });
                     });
 
-                    // 随机选择3句不同的歌词
+                    // 随机选择3句不同的内容
                     const selectedLyrics = [];
                     while (selectedLyrics.length < 3 && availableLyrics.length > 0) {
                         const randomIndex = Math.floor(Math.random() * availableLyrics.length);
@@ -588,20 +595,27 @@
                         selectedLyrics.push(selected);
                     }
 
+                    // 如果选择的句子不够3个，跳过这个题目
+                    if (selectedLyrics.length < 3) {
+                        return null; // 返回null，后续会过滤掉
+                    }
+
                     // 随机选择其中一句作为正确答案播放
                     const correctIndex = Math.floor(Math.random() * 3);
                     const correctLyric = selectedLyrics[correctIndex];
 
-                    // 选项是这3句歌词
+                    // 选项是这3句内容
                     const options = selectedLyrics.map(item => item.lyric);
 
                     return {
                         correctIndex,
                         correctLyric: correctLyric.lyric,
-                        correctSongTitle: correctLyric.songTitle,
+                        correctTitle: correctLyric.title,
+                        correctType: correctLyric.type,
+                        correctId: correctLyric.id,
                         options: options.sort(() => 0.5 - Math.random()) // 打乱选项顺序
                     };
-                });
+                }).filter(question => question !== null); // 过滤掉无效的题目
             }, []);
 
             const current = questions[step];
@@ -622,15 +636,16 @@
                     speak("答对啦！真棒！");
                     setScore(s => s + 1);
                     setFeedback('correct');
-                    // 找到对应的儿歌ID并标记为掌握
-                    const song = SONGS.find(s => s.title === current.correctSongTitle);
-                    if (song) onSongMaster(song.id);
+                    // 如果是儿歌，标记为掌握
+                    if (current.correctType === 'song') {
+                        onSongMaster(current.correctId);
+                    }
                     setRetryMode(false); // 答对后清除重试模式
                     setTimeout(() => {
                         setFeedback(null);
                         if (step < CHALLENGE_QUESTION_COUNT - 1) {
                             const nextStep = step + 1;
-                            // 在切换到下一题之前，先播放下一题的正确歌词
+                            // 在切换到下一题之前，先播放下一题的正确内容
                             const nextQuestion = questions[nextStep];
                             speak(nextQuestion.correctLyric, 0.8);
                             justPlayedAudioRef.current = true; // 标记已经手动播放过
@@ -643,7 +658,7 @@
                     speak("再听听看？");
                     setFeedback('wrong');
                     setRetryMode(true); // 进入重试模式
-                    // 答错后重新播放正确歌词，让孩子重新听
+                    // 答错后重新播放正确内容，让孩子重新听
                     setTimeout(() => {
                         setFeedback(null);
                         speak(current.correctLyric, 0.8); // 重新播放
@@ -653,10 +668,10 @@
 
             if (finished) return (
                 <div className="h-screen pt-20 px-8 flex flex-col items-center justify-center space-y-8 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-                    <Header title="歌词侦探结果" />
+                    <Header title="诗词侦探结果" />
                     <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up border-b-[15px] border-purple-200">
                         <div className="text-[8rem] mb-6 animate-bounce">🕵️</div>
-                        <h2 className="text-4xl font-black text-gray-800 mb-4">歌词侦探挑战完成！</h2>
+                        <h2 className="text-4xl font-black text-gray-800 mb-4">诗词侦探挑战完成！</h2>
                         <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 mb-8">
                             {score}/{CHALLENGE_QUESTION_COUNT}
                         </div>
@@ -671,9 +686,9 @@
                         </div>
 
                         <div className="text-xl font-bold text-gray-600 mb-8">
-                            {score >= 9 ? '🎉 超级棒！你是歌词侦探！' :
+                            {score >= 9 ? '🎉 超级棒！你是诗词侦探！' :
                              score >= 7 ? '😊 真棒！耳朵真灵！' :
-                             score >= 5 ? '👍 不错哦！多听听歌词吧！' :
+                             score >= 5 ? '👍 不错哦！多听听诗歌吧！' :
                              '💪 没关系，多练习就行！'}
                         </div>
 
@@ -686,7 +701,7 @@
 
             return (
                 <div className="h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pt-20 px-6 flex flex-col items-center">
-                    <Header title={`歌词侦探 ${step + 1}/${CHALLENGE_QUESTION_COUNT}`} onBack={onBack} />
+                    <Header title={`诗词侦探 ${step + 1}/${CHALLENGE_QUESTION_COUNT}`} onBack={onBack} />
 
                     {/* 进度指示器 */}
                     <div className="w-full max-w-md mb-6">
@@ -702,7 +717,7 @@
                     {/* 播放区域 */}
                     <div
                         onClick={() => {
-                            speak(current.correctLyric, 0.8);
+                            speak(current.correct, 0.8);
                         }}
                         className={`w-full max-w-md glass-card rounded-[4rem] p-8 border-[15px] transition-all duration-300 cursor-pointer active:scale-95 relative overflow-hidden mb-6 ${
                             feedback === 'correct'
@@ -722,25 +737,25 @@
 
                         <div className="text-center relative z-30">
                             <div className="text-2xl font-black text-purple-600 mb-4 flex items-center justify-center gap-2">
-                                <span className="text-3xl animate-pulse">🎧</span> 听听这段儿歌 <span>🎵</span>
+                                <span className="text-3xl animate-pulse">🎧</span> 听听这段诗歌 <span>🎵</span>
                             </div>
 
                             <div className="text-3xl font-black text-purple-600 mb-4 flex items-center justify-center gap-3">
-                                <span>🤔</span> 这是哪句歌词？ <span>🤔</span>
+                                <span>🤔</span> 这是哪句内容？ <span>🤔</span>
                             </div>
 
                             {/* 播放状态指示器 */}
                             {!feedback && (
                                 <div className="mt-2 p-3 bg-purple-100 rounded-xl border-2 border-purple-300">
                                     <div className="text-lg font-black text-purple-600 flex items-center justify-center gap-2">
-                                        <span>🔊</span> 点击播放歌词...
+                                        <span>🔊</span> 点击播放内容...
                                     </div>
                                 </div>
                             )}
 
                             {feedback === 'correct' && (
                                 <div className="text-xl font-black text-green-600 mt-2 animate-bounce text-center">
-                                    ✅ 答对啦！<br/>这是《{current.correctSongTitle}》里的歌词
+                                    ✅ 答对啦！<br/>这是《{current.correctTitle}》里的内容
                                 </div>
                             )}
                             {feedback === 'wrong' && (
@@ -758,9 +773,9 @@
                                 key={idx}
                                 onClick={() => handleAnswer(opt)}
                                 className={`py-4 px-4 bg-white rounded-[2rem] text-xl font-black text-gray-700 shadow-xl border-b-[8px] transition-all duration-300 ${
-                                    feedback === 'correct' && opt === current.correctLyric
+                                    feedback === 'correct' && opt === current.correct
                                         ? 'border-green-400 bg-green-50 text-green-700 scale-105'
-                                        : feedback === 'wrong' && opt === current.correctLyric
+                                        : feedback === 'wrong' && opt === current.correct
                                         ? 'border-green-400 bg-green-50 text-green-700 scale-105'
                                         : feedback === 'wrong'
                                         ? 'border-red-400 bg-red-50 text-red-700'
@@ -779,7 +794,7 @@
                                 </div>
 
                                 {/* 正确答案标记 */}
-                                {feedback && opt === current.correctLyric && (
+                                {feedback && opt === current.correct && (
                                     <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-3xl animate-bounce">
                                         ✨
                                     </div>
@@ -801,33 +816,45 @@
             const [hasPlayed, setHasPlayed] = useState(false);
 
             const questions = useMemo(() => {
-                // 从所有儿歌中动态生成10道随机题目
+                // 从所有儿歌和诗词中动态生成10道随机题目
                 const generatedQuestions = [];
-                const usedSongs = new Set(); // 避免重复使用同一首儿歌
+                const usedItems = new Set(); // 避免重复使用同一首内容
+
+                // 合并所有内容源
+                const allSources = [
+                    ...SONGS.map(song => ({ ...song, type: 'song' })),
+                    ...POEMS.map(poem => ({ ...poem, type: 'poem' }))
+                ];
 
                 while (generatedQuestions.length < CHALLENGE_QUESTION_COUNT) {
-                    // 随机选择一首儿歌
-                    const availableSongs = SONGS.filter(song => !usedSongs.has(song.id));
-                    if (availableSongs.length === 0) break; // 如果所有儿歌都用完了，停止
+                    // 随机选择一首儿歌或诗词
+                    const availableSources = allSources.filter(item => !usedItems.has(item.id));
+                    if (availableSources.length === 0) break; // 如果所有内容都用完了，停止
 
-                    const randomSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
-                    usedSongs.add(randomSong.id);
+                    const randomSource = availableSources[Math.floor(Math.random() * availableSources.length)];
+                    usedItems.add(randomSource.id);
 
-                    // 为这首儿歌随机选择一句歌词（不能是最后一句，因为需要有下一句作为答案）
-                    const maxIndex = randomSong.content.length - 2; // 留出至少一句作为答案
-                    if (maxIndex < 0) continue; // 如果儿歌太短，跳过
+                    // 为这首内容随机选择一句（不能是最后一句，因为需要有下一句作为答案）
+                    const maxIndex = randomSource.content.length - 2; // 留出至少一句作为答案
+                    if (maxIndex < 0) continue; // 如果内容太短，跳过
 
                     const playIndex = Math.floor(Math.random() * (maxIndex + 1));
-                    const playLyrics = [randomSong.content[playIndex]];
-                    const correctAnswer = randomSong.content[playIndex + 1];
+                    const playLyrics = [randomSource.content[playIndex]];
+                    const correctAnswer = randomSource.content[playIndex + 1];
 
-                    // 生成错误选项：从其他儿歌中随机选择不同的句子
+                    // 生成错误选项：从其他内容中随机选择不同的句子
                     const wrongOptions = [];
-                    const otherSongs = SONGS.filter(song => song.id !== randomSong.id);
+                    const otherSources = allSources.filter(item => item.id !== randomSource.id);
+                    const allOtherLines = [];
+                    otherSources.forEach(source => {
+                        source.content.forEach(line => {
+                            allOtherLines.push(line);
+                        });
+                    });
 
-                    while (wrongOptions.length < 2) {
-                        const randomOtherSong = otherSongs[Math.floor(Math.random() * otherSongs.length)];
-                        const randomLine = randomOtherSong.content[Math.floor(Math.random() * randomOtherSong.content.length)];
+                    while (wrongOptions.length < 2 && allOtherLines.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * allOtherLines.length);
+                        const randomLine = allOtherLines.splice(randomIndex, 1)[0];
 
                         // 确保错误选项不与正确答案重复
                         if (!wrongOptions.includes(randomLine) && randomLine !== correctAnswer) {
@@ -841,7 +868,8 @@
 
                     generatedQuestions.push({
                         id: generatedQuestions.length + 1,
-                        songId: randomSong.id,
+                        sourceId: randomSource.id,
+                        sourceType: randomSource.type,
                         playLyrics: playLyrics,
                         correct: correctAnswer,
                         options: shuffledOptions
@@ -870,7 +898,10 @@
                     speak("答对啦！真棒！");
                     setScore(s => s + 1);
                     setFeedback('correct');
-                    onSongMaster(current.songId);
+                    // 如果是儿歌，标记为掌握
+                    if (current.sourceType === 'song') {
+                        onSongMaster(current.sourceId);
+                    }
                     // 答对时才跳到下一题
                     setTimeout(() => {
                         setFeedback(null);
@@ -880,7 +911,7 @@
                 } else {
                     speak("再听听看？");
                     setFeedback('wrong');
-                    // 答错时重新播放歌词，让孩子重新听
+                    // 答错时重新播放内容，让孩子重新听
                     setTimeout(() => {
                         setFeedback(null);
                         setHasPlayed(false);
@@ -924,10 +955,10 @@
 
             if (finished) return (
                 <div className="h-screen pt-20 px-8 flex flex-col items-center justify-center space-y-8 bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
-                    <Header title="儿歌挑战结果" />
+                    <Header title="诗词挑战结果" />
                     <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up border-b-[15px] border-pink-200">
                         <div className="text-[8rem] mb-6 animate-bounce">🎵</div>
-                        <h2 className="text-4xl font-black text-gray-800 mb-4">儿歌挑战完成！</h2>
+                        <h2 className="text-4xl font-black text-gray-800 mb-4">诗词挑战完成！</h2>
                         <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 mb-8">
                             {score}/{CHALLENGE_QUESTION_COUNT}
                         </div>
@@ -942,7 +973,7 @@
                         </div>
 
                         <div className="text-xl font-bold text-gray-600 mb-8">
-                            {score >= 9 ? '🎉 超级棒！你是儿歌小天才！' :
+                            {score >= 9 ? '🎉 超级棒！你是诗歌小能手！' :
                              score >= 7 ? '😊 真棒！继续加油！' :
                              score >= 5 ? '👍 不错哦！再接再厉！' :
                              '💪 没关系，多听多练就行！'}
@@ -957,7 +988,7 @@
 
             return (
                 <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pt-20 px-6 flex flex-col items-center">
-                    <Header title={`儿歌挑战 ${step + 1}/${CHALLENGE_QUESTION_COUNT}`} onBack={onBack} />
+                    <Header title={`诗词挑战 ${step + 1}/${CHALLENGE_QUESTION_COUNT}`} onBack={onBack} />
 
                     {/* 进度指示器 */}
                     <div className="w-full max-w-md mb-6">
@@ -970,7 +1001,7 @@
                         </div>
                     </div>
 
-                    {/* 融合播放和问题区域 - 参考歌词小侦探设计风格 */}
+                    {/* 融合播放和问题区域 - 参考诗词小侦探设计风格 */}
                     <div
                         onClick={playLyrics}
                         className={`w-full max-w-md glass-card rounded-[4rem] p-8 border-[15px] transition-all duration-500 cursor-pointer active:scale-95 relative overflow-hidden mb-6 ${
@@ -991,7 +1022,7 @@
 
                         <div className="text-center relative z-30">
                             <div className="text-2xl font-black text-pink-600 mb-4 flex items-center justify-center gap-2">
-                                <span className="text-3xl animate-pulse">🎧</span> 听听这段儿歌 <span>🎵</span>
+                                <span className="text-3xl animate-pulse">🎧</span> 听听这段诗歌 <span>🎵</span>
                             </div>
 
                             <div className="text-3xl font-black text-pink-600 mb-4 flex items-center justify-center gap-3">
@@ -1044,7 +1075,7 @@
                             {showHint && (
                                 <div className="mt-3 p-3 bg-yellow-100 rounded-xl border-2 border-yellow-300">
                                     <p className="text-sm text-yellow-800 font-bold">
-                                        仔细听歌词，想想下一句最可能是什么哦！
+                                        仔细听内容，想想下一句最可能是什么哦！
                                     </p>
                                 </div>
                             )}
@@ -1160,11 +1191,11 @@
                                 </button>
                                 <button onClick={() => setMode('EXAM_SONG_RECOG')} className="bg-white p-8 rounded-[3rem] shadow-2xl border-b-[12px] border-purple-200 flex flex-col items-center active:scale-95 transition-all">
                                     <span className="text-[6rem] mb-3">🕵️</span>
-                                    <h3 className="text-3xl font-black text-purple-600">歌词小侦探</h3>
+                                    <h3 className="text-3xl font-black text-purple-600">诗歌小侦探</h3>
                                 </button>
                                 <button onClick={() => setMode('EXAM_SONGS')} className="bg-white p-8 rounded-[3rem] shadow-2xl border-b-[12px] border-pink-200 flex flex-col items-center active:scale-95 transition-all">
                                     <span className="text-[6rem] mb-3">🎵</span>
-                                    <h3 className="text-3xl font-black text-pink-600">儿歌小能手</h3>
+                                    <h3 className="text-3xl font-black text-pink-600">诗歌小能手</h3>
                                 </button>
                                 <div className="bg-pink-100 p-6 rounded-[2.5rem] text-center border-2 border-pink-200">
                                     <p className="text-pink-600 font-black">💡 亲子时刻：请念出题目让宝宝选</p>
