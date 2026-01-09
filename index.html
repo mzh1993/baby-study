@@ -1030,7 +1030,7 @@
                     {mode === 'SONGS' && <SongScreen onBack={() => setMode('HOME')} onRead={handleReadSong} progress={progress} />}
                     {mode === 'STATS' && <StatsScreen progress={progress} />}
                     {mode === 'EXAM_SELECT' && (
-                        <div className="h-screen pt-20 px-6 space-y-6">
+                        <div className="h-screen overflow-y-auto pt-20 px-6 space-y-6">
                             <Header title="亲子大挑战" onBack={() => setMode('HOME')} />
                             <div className="grid grid-cols-1 gap-6 mt-6">
                                 <button onClick={() => setMode('EXAM_WORDS')} className="bg-white p-12 rounded-[4rem] shadow-2xl border-b-[15px] border-orange-200 flex flex-col items-center active:scale-95 transition-all">
