@@ -110,12 +110,12 @@
             { id: 'p3', title: '咏鹅', author: '骆宾王', content: ['鹅鹅鹅，', '曲项向天歌。', '白毛浮绿水，', '红掌拨清波。'] },
             { id: 'p4', title: '江南', author: '汉乐府', content: ['江南可采莲，', '莲叶何田田。', '鱼戏莲叶间。', '鱼戏莲叶东，', '鱼戏莲叶西，', '鱼戏莲叶南，', '鱼戏莲叶北。'] },
             { id: 'p5', title: '静夜思', author: '李白', content: ['床前明月光，', '疑是地上霜。', '举头望明月，', '低头思故乡。'] },
-            { id: 'p6', title: '春晓', author: '孟浩然', content: ['春眠不觉晓，', '处处闻啼鸟。', '夜来风雨声，', '花落知多少。'] },
-            { id: 'p7', title: '登鹳雀楼', author: '王之涣', content: ['白日依山尽，', '黄河入海流。', '欲穷千里目，', '更上一层楼。'] },
-            { id: 'p8', title: '小儿垂钓', author: '胡令能', content: ['蓬头稚子学垂纶，', '侧坐莓苔草映身。', '路人借问遥招手，', '怕得鱼惊不应人。'] },
-            { id: 'p9', title: '江雪', author: '柳宗元', content: ['千山鸟飞绝，', '万径人踪灭。', '孤舟蓑笠翁，', '独钓寒江雪。'] },
-            { id: 'p10', title: '悯农', author: '李绅', content: ['锄禾日当午，', '汗滴禾下土。', '谁知盘中餐，', '粒粒皆辛苦。'] },
-            { id: 'p11', title: '寻隐者不遇', author: '贾岛', content: ['松下问童子，', '言师采药去。', '只在此山中，', '云深不知处。'] }
+            // { id: 'p6', title: '春晓', author: '孟浩然', content: ['春眠不觉晓，', '处处闻啼鸟。', '夜来风雨声，', '花落知多少。'] },
+            // { id: 'p7', title: '登鹳雀楼', author: '王之涣', content: ['白日依山尽，', '黄河入海流。', '欲穷千里目，', '更上一层楼。'] },
+            // { id: 'p8', title: '小儿垂钓', author: '胡令能', content: ['蓬头稚子学垂纶，', '侧坐莓苔草映身。', '路人借问遥招手，', '怕得鱼惊不应人。'] },
+            // { id: 'p9', title: '江雪', author: '柳宗元', content: ['千山鸟飞绝，', '万径人踪灭。', '孤舟蓑笠翁，', '独钓寒江雪。'] },
+            // { id: 'p10', title: '悯农', author: '李绅', content: ['锄禾日当午，', '汗滴禾下土。', '谁知盘中餐，', '粒粒皆辛苦。'] },
+            // { id: 'p11', title: '寻隐者不遇', author: '贾岛', content: ['松下问童子，', '言师采药去。', '只在此山中，', '云深不知处。'] }
         ];
 
         const CARD_COLORS = ['border-red-400', 'border-blue-400', 'border-green-400', 'border-yellow-400', 'border-purple-400', 'border-pink-400', 'border-orange-400'];
@@ -570,67 +570,74 @@
             const justPlayedAudioRef = useRef(false);
 
             const questions = useMemo(() => {
-                // 为每个题目创建3个选项：随机选择3句不同的内容（儿歌+诗词）
-                const generatedQuestions = [...Array(CHALLENGE_QUESTION_COUNT)].map(() => {
-                    // 从所有儿歌和诗词中随机选择3句不同的内容作为选项
-                    const availableLyrics = [];
-                    // 添加儿歌内容
-                    SONGS.forEach(song => {
-                        song.content.forEach(lyric => {
-                            availableLyrics.push({ lyric, title: song.title, type: 'song', id: song.id });
-                        });
+                // 构建所有可用内容的数组
+                const allLyrics = [];
+                // 添加儿歌内容
+                SONGS.forEach(song => {
+                    song.content.forEach(lyric => {
+                        allLyrics.push({ lyric, title: song.title, type: 'song', id: song.id });
                     });
-                    // 添加诗词内容
-                    POEMS.forEach(poem => {
-                        poem.content.forEach(line => {
-                            availableLyrics.push({ lyric: line, title: poem.title, type: 'poem', id: poem.id });
-                        });
+                });
+                // 添加诗词内容
+                POEMS.forEach(poem => {
+                    poem.content.forEach(line => {
+                        allLyrics.push({ lyric: line, title: poem.title, type: 'poem', id: poem.id });
                     });
+                });
 
+                // 为每个题目创建3个选项：随机选择3句不同的内容
+                const generatedQuestions = [];
+                const usedIndices = new Set();
+
+                for (let i = 0; i < CHALLENGE_QUESTION_COUNT && usedIndices.size < allLyrics.length - 2; i++) {
                     // 随机选择3句不同的内容
                     const selectedLyrics = [];
-                    while (selectedLyrics.length < 3 && availableLyrics.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * availableLyrics.length);
-                        const selected = availableLyrics.splice(randomIndex, 1)[0];
-                        selectedLyrics.push(selected);
+                    const questionUsedIndices = new Set();
+
+                    while (selectedLyrics.length < 3 && questionUsedIndices.size < allLyrics.length) {
+                        const randomIndex = Math.floor(Math.random() * allLyrics.length);
+                        if (!questionUsedIndices.has(randomIndex) && !usedIndices.has(randomIndex)) {
+                            questionUsedIndices.add(randomIndex);
+                            usedIndices.add(randomIndex);
+                            selectedLyrics.push(allLyrics[randomIndex]);
+                        }
                     }
 
-                    // 如果选择的句子不够3个，跳过这个题目
-                    if (selectedLyrics.length < 3) {
-                        return null; // 返回null，后续会过滤掉
+                    if (selectedLyrics.length >= 3) {
+                        // 随机选择其中一句作为正确答案播放
+                        const correctIndex = Math.floor(Math.random() * 3);
+                        const correctLyric = selectedLyrics[correctIndex];
+
+                        // 选项是这3句内容
+                        const options = selectedLyrics.map(item => item.lyric);
+
+                        generatedQuestions.push({
+                            correctIndex,
+                            correctLyric: correctLyric.lyric,
+                            correctTitle: correctLyric.title,
+                            correctType: correctLyric.type,
+                            correctId: correctLyric.id,
+                            options: options.sort(() => 0.5 - Math.random()) // 打乱选项顺序
+                        });
                     }
+                }
 
-                    // 随机选择其中一句作为正确答案播放
-                    const correctIndex = Math.floor(Math.random() * 3);
-                    const correctLyric = selectedLyrics[correctIndex];
-
-                    // 选项是这3句内容
-                    const options = selectedLyrics.map(item => item.lyric);
-
-                    return {
-                        correctIndex,
-                        correctLyric: correctLyric.lyric,
-                        correctTitle: correctLyric.title,
-                        correctType: correctLyric.type,
-                        correctId: correctLyric.id,
-                        options: options.sort(() => 0.5 - Math.random()) // 打乱选项顺序
-                    };
-                }).filter(question => question !== null); // 过滤掉无效的题目
+                return generatedQuestions;
             }, []);
 
             const current = questions[step];
 
             useEffect(() => {
-                if (!finished && !retryMode && !justPlayedAudioRef.current) {
-                    // 播放正确的那句歌词
+                if (!finished && !retryMode && !justPlayedAudioRef.current && current) {
+                    // 播放正确的那句内容
                     speak(current.correctLyric, 0.8);
                 }
                 // 每次 step 改变后重置 justPlayedAudioRef
                 justPlayedAudioRef.current = false;
-            }, [step, finished, retryMode]);
+            }, [step, finished, retryMode, current]);
 
             const handleAnswer = (ans) => {
-                if (feedback) return;
+                if (feedback || !current) return;
                 const correct = ans === current.correctLyric;
                 if (correct) {
                     speak("答对啦！真棒！");
@@ -688,7 +695,7 @@
                         <div className="text-xl font-bold text-gray-600 mb-8">
                             {score >= 9 ? '🎉 超级棒！你是诗词侦探！' :
                              score >= 7 ? '😊 真棒！耳朵真灵！' :
-                             score >= 5 ? '👍 不错哦！多听听诗歌吧！' :
+                             score >= 5 ? '👍 不错哦！多听听儿歌和诗词吧！' :
                              '💪 没关系，多练习就行！'}
                         </div>
 
@@ -698,6 +705,23 @@
                     </div>
                 </div>
             );
+
+            // 如果没有题目，显示错误信息
+            if (questions.length === 0) {
+                return (
+                    <div className="h-screen pt-20 px-8 flex flex-col items-center justify-center space-y-8 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+                        <Header title="诗词侦探" onBack={onBack} />
+                        <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up border-b-[15px] border-purple-200">
+                            <div className="text-[8rem] mb-6">😅</div>
+                            <h2 className="text-4xl font-black text-gray-800 mb-4">题目加载中...</h2>
+                            <p className="text-xl text-gray-600 mb-8">请稍等，正在准备题目</p>
+                            <button onClick={onBack} className="w-full py-6 bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-8 border-purple-600 active:translate-y-2 transition-all">
+                                返回主页
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
 
             return (
                 <div className="h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pt-20 px-6 flex flex-col items-center">
@@ -737,7 +761,7 @@
 
                         <div className="text-center relative z-30">
                             <div className="text-2xl font-black text-purple-600 mb-4 flex items-center justify-center gap-2">
-                                <span className="text-3xl animate-pulse">🎧</span> 听听这段诗歌 <span>🎵</span>
+                                <span className="text-3xl animate-pulse">🎧</span> 听听这段儿歌或诗词 <span>🎵</span>
                             </div>
 
                             <div className="text-3xl font-black text-purple-600 mb-4 flex items-center justify-center gap-3">
@@ -768,7 +792,7 @@
 
                     {/* 选项按钮 */}
                     <div className="grid grid-cols-1 gap-4 w-full max-w-md mb-32">
-                        {current.options.map((opt, idx) => (
+                        {current?.options?.map((opt, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => handleAnswer(opt)}
@@ -882,7 +906,7 @@
             const current = questions[step];
 
             const playLyrics = () => {
-                if (playing) return;
+                if (playing || !current) return;
                 setPlaying(true);
                 speak(current.playLyrics.join(''), 0.8);
                 setTimeout(() => {
@@ -892,7 +916,7 @@
             };
 
             const handleAnswer = (ans) => {
-                if (feedback || !hasPlayed) return; // 只有播放后才能选择答案
+                if (feedback || !hasPlayed || !current) return; // 只有播放后才能选择答案
                 const correct = ans === current.correct;
                 if (correct) {
                     speak("答对啦！真棒！");
@@ -973,7 +997,7 @@
                         </div>
 
                         <div className="text-xl font-bold text-gray-600 mb-8">
-                            {score >= 9 ? '🎉 超级棒！你是诗歌小能手！' :
+                            {score >= 9 ? '🎉 超级棒！你是诗词小能手！' :
                              score >= 7 ? '😊 真棒！继续加油！' :
                              score >= 5 ? '👍 不错哦！再接再厉！' :
                              '💪 没关系，多听多练就行！'}
@@ -985,6 +1009,23 @@
                     </div>
                 </div>
             );
+
+            // 如果没有题目，显示错误信息
+            if (questions.length === 0) {
+                return (
+                    <div className="h-screen pt-20 px-8 flex flex-col items-center justify-center space-y-8 bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+                        <Header title="诗词挑战" onBack={onBack} />
+                        <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up border-b-[15px] border-pink-200">
+                            <div className="text-[8rem] mb-6">😅</div>
+                            <h2 className="text-4xl font-black text-gray-800 mb-4">题目加载中...</h2>
+                            <p className="text-xl text-gray-600 mb-8">请稍等，正在准备题目</p>
+                            <button onClick={onBack} className="w-full py-6 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-8 border-pink-600 active:translate-y-2 transition-all">
+                                返回主页
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
 
             return (
                 <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pt-20 px-6 flex flex-col items-center">
@@ -1022,7 +1063,7 @@
 
                         <div className="text-center relative z-30">
                             <div className="text-2xl font-black text-pink-600 mb-4 flex items-center justify-center gap-2">
-                                <span className="text-3xl animate-pulse">🎧</span> 听听这段诗歌 <span>🎵</span>
+                                <span className="text-3xl animate-pulse">🎧</span> 听听这段儿歌或诗词 <span>🎵</span>
                             </div>
 
                             <div className="text-3xl font-black text-pink-600 mb-4 flex items-center justify-center gap-3">
@@ -1084,7 +1125,7 @@
 
                     {/* 选项按钮 */}
                     <div className="grid grid-cols-1 gap-4 w-full max-w-md mb-32">
-                        {current.options.map((opt, idx) => (
+                        {current?.options?.map((opt, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => handleAnswer(opt)}
@@ -1191,11 +1232,11 @@
                                 </button>
                                 <button onClick={() => setMode('EXAM_SONG_RECOG')} className="bg-white p-8 rounded-[3rem] shadow-2xl border-b-[12px] border-purple-200 flex flex-col items-center active:scale-95 transition-all">
                                     <span className="text-[6rem] mb-3">🕵️</span>
-                                    <h3 className="text-3xl font-black text-purple-600">诗歌小侦探</h3>
+                                    <h3 className="text-3xl font-black text-purple-600">诗词小侦探</h3>
                                 </button>
                                 <button onClick={() => setMode('EXAM_SONGS')} className="bg-white p-8 rounded-[3rem] shadow-2xl border-b-[12px] border-pink-200 flex flex-col items-center active:scale-95 transition-all">
                                     <span className="text-[6rem] mb-3">🎵</span>
-                                    <h3 className="text-3xl font-black text-pink-600">诗歌小能手</h3>
+                                    <h3 className="text-3xl font-black text-pink-600">诗词小能手</h3>
                                 </button>
                                 <div className="bg-pink-100 p-6 rounded-[2.5rem] text-center border-2 border-pink-200">
                                     <p className="text-pink-600 font-black">💡 亲子时刻：请念出题目让宝宝选</p>
@@ -1251,3 +1292,4 @@
     </script>
 </body>
 </html>
+
