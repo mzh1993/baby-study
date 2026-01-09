@@ -6,63 +6,410 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="宝贝趣学堂">
-    <meta name="mobile-web-app-capable" content="yes">
+    <base href="./">
     <link rel="manifest" href="manifest.json">
-    <title>宝贝趣学堂</title>
+    <title>宝贝趣学堂 🎈</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <style>
-        body {
-            font-family: 'ZCOOL KuaiLe', cursive;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden;
-            overscroll-behavior-y: contain;
+        body { 
+            font-family: 'ZCOOL KuaiLe', cursive; 
+            -webkit-tap-highlight-color: transparent; 
+            overflow: hidden; 
+            background-color: #FFFBEB;
+            touch-action: manipulation;
+            user-select: none;
         }
-        .bouncy {
-            animation: bounce 0.5s infinite alternate;
+        .bouncy { animation: bounce 0.8s infinite alternate ease-in-out; }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+        
+        .pop-up { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .jelly-btn:active { transform: scale(0.92); transition: 0.1s; }
+        
+        .confetti-piece { position: absolute; width: 12px; height: 12px; top: -20px; opacity: 0; animation: fall 3s ease-out forwards; z-index: 100; }
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
-        @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-5px); }
+
+        ::-webkit-scrollbar { display: none; }
+        .safe-area-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 5rem); }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 4px solid white;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+        }
+
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client"
-  }
-}
-</script>
-<!-- 引入 Babel 使得浏览器能理解 TSX -->
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-[#FFFBEB]">
+<body>
     <div id="root"></div>
 
-    <script>
-        // Service Worker 注册
-        if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW error:', err));
-            });
-        }
-    </script>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-    <!-- 使用 Babel 加载主入口，注意这里我们直接通过模块方式引入 -->
-    <script type="text/babel" data-type="module" data-presets="typescript,react">
-        import React from 'react';
-        import ReactDOM from 'react-dom/client';
-        import App from './App.tsx';
+        // --- 数据配置 (全量整合) ---
+        const WORDS = ["小鸡", "见面", "小象", "小羊", "小狗", "手", "拉拉手", "招招手", "皮球", "风", "大树", "小", "大", "火把", "尾巴", "水", "青蛙", "小河", "鸭子", "河马", "乌龟", "门", "水龙头", "幼儿园", "泡泡", "喷", "香皂", "干净", "毛巾", "洗", "车站", "汽车", "小猪", "兔子", "郊游", "月牙", "响", "门铃", "公园", "下棋", "太阳", "画画", "妈妈", "爸爸", "小猫", "朋友", "土", "仓鼠", "洞", "花", "低", "高", "奶奶", "长大", "哥哥", "爷爷", "妹妹", "爱心", "衣服", "头发"];
+        
+        const EMOJIS = {"小鸡":"🐥","见面":"🤝","小象":"🐘","小羊":"🐑","小狗":"🐶","手":"✋","拉拉手":"🤝","招招手":"🙋","皮球":"🏀","风":"💨","大树":"🌳","小":"🐜","大":"🐘","火把":"🔥","尾巴":"🐒","水":"💧","青蛙":"🐸","小河":"🌊","鸭子":"🦆","河马":"🦛","乌龟":"🐢","门":"🚪","水龙头":"🚰","幼儿园":"🏫","泡泡":"🫧","喷":"🚿","香皂":"🧼","干净":"✨","毛巾":"🧣","洗":"🛁","车站":"🚉","汽车":"🚗","小猪":"🐷","兔子":"🐰","郊游":"🏕️","月牙":"🌙","响":"🔔","门铃":"🛎️","公园":"🎠","下棋":"♟️","太阳":"☀️","画画":"🎨","妈妈":"👩","爸爸":"👨","小猫":"🐱","朋友":"👫","土":"🪴","仓鼠":"🐹","洞":"🕳️","花":"🌸","低":"👇","高":"👆","奶奶":"👵","长大":"🌱","哥哥":"👦","爷爷":"👴","妹妹":"👧","爱心":"❤️","衣服":"👕","头发":"💇"};
+        
+        const SONGS = [
+            { id: 's1', title: '娃娃的手', content: ['离得远，招招手，', '走近啦，握握手。', '一起来，牵牵手，', '做游戏，钩钩手。', '跳个舞，拍拍手。', '再见啦，挥挥手。', '我们都是好朋友，', '亲亲热热拉拉手。'] },
+            { id: 's2', title: '小尾巴', content: ['大公鸡，花尾巴，', '走来走去像朵花. ', '小狐狸，红尾巴，', '跑来走去像火把。', '小肥猪，细尾巴，', '“哼哼”一声摇两下。', '小宝宝，追妈妈，', '要当妈妈小尾巴。'] },
+            { id: 's3', title: '敲门', content: ['我一个人在家的时候，', '总想爸爸妈妈来敲门。', '我和爸爸在家的时候，', '总想妈妈来敲门。', '我和妈妈在家的时候，', '总想爸爸来敲门。', '我们都在家的时候，', '朋友总会来敲门。'] },
+            { id: 's4', title: '风的家', content: ['大风没有家，', '它在找妈妈。', '我把门开开，', '你也有家了，', '进来呀!进来呀!', '你的家，在我家'] },
+            { id: 's5', title: '唱歌', content: ['小鸡唱歌，叽叽叽。', '小狗唱歌，汪汪汪。', '小猫唱歌，喵喵喵。', '老虎唱歌，嗷嗷嗷。', '一会儿轻，一会儿响。', '一会儿高，一会儿低。', '大家在一起，没关系。'] },
+            { id: 's6', title: '淋浴', content: ['大白象，笑眯眯，', '它请大家洗淋浴。', '小兔子，小花鸡，', '小黄狗，小猫咪，', '洗呀洗，洗呀洗，', '长鼻子喷水像下雨。'] },
+            { id: 's7', title: '打电话', content: ['月牙月牙下来吧，', '我想请你打电话。', '告诉天公公:', '我们明天去郊游，', '请别下雨呀!'] },
+            { id: 's8', title: '妈妈', content: ['你给我洗脸，', '你给我梳头发，', '你给我换衣服，', '你是我的妈妈。', '我给洋娃娃洗脸，', '我给洋娃娃梳头发，', '我是洋娃娃的妈妈。'] }
+        ];
+
+        const CARD_COLORS = ['border-red-400', 'border-blue-400', 'border-green-400', 'border-yellow-400', 'border-purple-400', 'border-pink-400', 'border-orange-400'];
+
+        // --- 工具函数 ---
+        const speak = (text, rate = 0.9) => {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'zh-CN'; u.rate = rate; u.pitch = 1.2;
+            window.speechSynthesis.speak(u);
+        };
+
+        // --- 通用组件 ---
+        const Confetti = () => (
+            <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
+                {[...Array(35)].map((_, i) => (
+                    <div key={i} className="confetti-piece" style={{ 
+                        left: `${Math.random() * 100}%`, 
+                        backgroundColor: ['#ffeb3b', '#e91e63', '#00bcd4', '#4caf50', '#ff5722'][i%5],
+                        animationDelay: `${Math.random() * 1.5}s`,
+                        width: `${Math.random() * 10 + 8}px`,
+                        height: `${Math.random() * 10 + 8}px`,
+                        borderRadius: i%2 === 0 ? '50%' : '2px'
+                    }} />
+                ))}
+            </div>
+        );
+
+        const Header = ({ title, onBack }) => (
+            <div className="fixed top-0 inset-x-0 bg-white/90 backdrop-blur-md p-4 flex items-center shadow-sm z-[60] h-16 pt-[env(safe-area-inset-top)]">
+                {onBack && (
+                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full text-blue-600 active:scale-90 transition-transform">
+                        <span className="text-xl">⬅️</span>
+                    </button>
+                )}
+                <h1 className="flex-1 text-center text-2xl font-black text-pink-500 truncate px-4">{title}</h1>
+            </div>
+        );
+
+        const Navbar = ({ active, setMode }) => (
+            <div className="fixed bottom-0 inset-x-0 bg-white/95 border-t border-pink-50 flex justify-around p-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] z-[60]">
+                {[
+                    {id:'HOME', i:'🏠', l:'首页'},
+                    {id:'CARDS', i:'🃏', l:'识字'},
+                    {id:'SONGS', i:'🎵', l:'儿歌'},
+                    {id:'STATS', i:'📊', l:'家长'}
+                ].map(n => (
+                    <button key={n.id} onClick={() => setMode(n.id)} className={`flex flex-col items-center gap-1 transition-all ${active.startsWith(n.id) ? 'text-pink-500 scale-110' : 'text-gray-400 opacity-60'}`}>
+                        <span className="text-3xl">{n.i}</span>
+                        <span className="text-[10px] font-bold">{n.l}</span>
+                    </button>
+                ))}
+            </div>
+        );
+
+        // --- 核心屏幕 ---
+        const HomeScreen = ({ setMode, progress }) => {
+            const dailyPercent = Math.min(100, (progress.daily / 10) * 100);
+            return (
+                <div className="h-screen overflow-y-auto pt-20 pb-32 px-6 space-y-6">
+                    <Header title="宝贝趣学堂" />
+                    <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-4 border-pink-50">
+                        <div className="flex justify-between items-end mb-4">
+                            <div>
+                                <h2 className="text-xl font-black text-gray-700">今日小成就 ✨</h2>
+                                <p className="text-xs text-gray-400 font-bold">每天十分钟，宝宝更聪明</p>
+                            </div>
+                            <span className="text-2xl font-black text-pink-500">{progress.daily}/10</span>
+                        </div>
+                        <div className="w-full bg-gray-100 h-8 rounded-full overflow-hidden shadow-inner p-1">
+                            <div className="h-full bg-gradient-to-r from-pink-400 via-red-400 to-yellow-400 rounded-full transition-all duration-1000" style={{ width: `${dailyPercent}%` }} />
+                        </div>
+                    </div>
+
+                    <button onClick={() => setMode('EXAM_SELECT')} className="w-full bg-gradient-to-br from-orange-400 to-yellow-500 p-8 rounded-[3rem] shadow-2xl border-b-[12px] border-orange-700 flex items-center justify-between text-white active:translate-y-2 active:border-b-4 transition-all bouncy">
+                        <div className="text-left">
+                            <h2 className="text-4xl font-black mb-1">开始挑战 🏆</h2>
+                            <p className="opacity-90 font-bold tracking-widest text-sm uppercase">赢取勋章吧！</p>
+                        </div>
+                        <span className="text-7xl">🥇</span>
+                    </button>
+
+                    <div className="grid grid-cols-2 gap-5">
+                        <button onClick={() => setMode('CARDS')} className="aspect-square bg-blue-400 rounded-[2.5rem] flex flex-col items-center justify-center text-white shadow-xl border-b-[10px] border-blue-600 active:translate-y-2 active:border-b-4">
+                            <span className="text-7xl mb-2">🎈</span>
+                            <span className="text-2xl font-black">快乐识字</span>
+                        </button>
+                        <button onClick={() => setMode('SONGS')} className="aspect-square bg-pink-400 rounded-[2.5rem] flex flex-col items-center justify-center text-white shadow-xl border-b-[10px] border-pink-600 active:translate-y-2 active:border-b-4">
+                            <span className="text-7xl mb-2">🎵</span>
+                            <span className="text-2xl font-black">儿歌大王</span>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const CardScreen = ({ onBack, onMaster, progress }) => {
+            const [idx, setIdx] = useState(0);
+            const word = WORDS[idx];
+            const isMastered = progress.mastered.includes(idx);
+            useEffect(() => { speak(word); }, [idx]);
+
+            return (
+                <div className="h-screen bg-white pt-20 px-4 flex flex-col items-center">
+                    <Header title="快来认认它" onBack={onBack} />
+                    <div className="w-full max-w-sm flex-1 max-h-[55vh]">
+                        <div className={`h-full w-full glass-card rounded-[4rem] flex flex-col items-center justify-center p-8 border-[12px] transition-all duration-500 ${CARD_COLORS[idx % CARD_COLORS.length]}`}>
+                            <div className="text-[11rem] drop-shadow-2xl mb-4 pop-up">{EMOJIS[word] || "✨"}</div>
+                            <h2 className="text-8xl font-black text-gray-800 tracking-tighter drop-shadow-sm">{word}</h2>
+                            <button onClick={() => speak(word)} className="mt-8 bg-yellow-400 w-20 h-20 rounded-full text-4xl shadow-xl flex items-center justify-center active:scale-90 border-b-8 border-yellow-600">🔊</button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6 w-full max-w-sm my-6">
+                        <button onClick={() => setIdx(i => (i - 1 + WORDS.length) % WORDS.length)} className="jelly-btn py-5 bg-gradient-to-b from-blue-400 to-blue-500 rounded-[2rem] text-white shadow-xl border-b-8 border-blue-700 flex items-center justify-center gap-2">
+                            <span className="text-3xl">⬅️</span>
+                            <span className="text-xl font-black">上一个</span>
+                        </button>
+                        <button onClick={() => setIdx(i => (i + 1) % WORDS.length)} className="jelly-btn py-5 bg-gradient-to-b from-blue-400 to-blue-500 rounded-[2rem] text-white shadow-xl border-b-8 border-blue-700 flex items-center justify-center gap-2">
+                            <span className="text-xl font-black">下一个</span>
+                            <span className="text-3xl">➡️</span>
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-32">
+                        <button onClick={() => setIdx(i=>(i+1)%WORDS.length)} className="py-6 bg-gray-100 text-gray-400 rounded-[2rem] font-black text-xl border-b-4 border-gray-200 active:translate-y-1">在学中 🧐</button>
+                        <button onClick={() => { speak("学会啦！"); onMaster(idx); setIdx(i => (i + 1) % WORDS.length); }} className={`py-6 rounded-[2rem] text-xl font-black text-white shadow-lg border-b-8 ${isMastered ? 'bg-green-500 border-green-700' : 'bg-green-400 border-green-600 active:translate-y-1'}`}>
+                            {isMastered ? '学会啦 ✅' : '学会啦 🏆'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const SongScreen = ({ onBack, onRead, progress }) => {
+            const [sel, setSel] = useState(null);
+            if (sel) return (
+                <div className="h-screen bg-pink-50 pt-20 px-4 overflow-y-auto pb-32">
+                    <Header title={sel.title} onBack={() => setSel(null)} />
+                    <div className="bg-white p-8 rounded-[3.5rem] shadow-2xl border-t-[15px] border-pink-400 pop-up">
+                        <div className="space-y-6">
+                            {sel.content.map((l, i) => <p key={i} onClick={() => speak(l)} className="text-3xl text-center font-black text-gray-700 active:text-pink-500 py-2 transition-all">{l}</p>)}
+                        </div>
+                        <div className="mt-12 space-y-4">
+                            <button onClick={() => speak(sel.content.join(' '), 0.8)} className="w-full py-7 bg-pink-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-[10px] border-pink-700 active:translate-y-2">🔊 读全文</button>
+                            <button onClick={() => { onRead(sel.id); setSel(null); speak("真了不起！读完啦！"); }} className="w-full py-5 bg-green-400 text-white rounded-[2.5rem] text-xl font-black shadow-lg">我读完啦 ✌️</button>
+                        </div>
+                    </div>
+                </div>
+            );
+            return (
+                <div className="h-screen overflow-y-auto pt-20 px-6 pb-32 space-y-4">
+                    <Header title="儿歌大王" onBack={onBack} />
+                    {SONGS.map((s, i) => (
+                        <div key={s.id} onClick={() => setSel(s)} className="bg-white p-6 rounded-[2rem] flex items-center justify-between shadow-md border-l-[12px] border-pink-400 active:scale-95 transition-all">
+                            <div className="flex items-center gap-5">
+                                <span className="text-5xl">{['🐰','🦊','🐥','🐶','🐱','🐻','🦁','🦒'][i%8]}</span>
+                                <span className="text-2xl font-black text-gray-800">{s.title}</span>
+                            </div>
+                            {progress.readSongs.includes(s.id) ? <span className="text-green-500 text-2xl font-black">✅</span> : <span className="text-pink-300 font-black">➔</span>}
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        const StatsScreen = ({ progress }) => {
+            const masterPercent = Math.round((progress.mastered.length / WORDS.length) * 100);
+            const hardest = Object.entries(progress.wrong || {}).sort((a,b)=>b[1]-a[1]).slice(0,3);
+            return (
+                <div className="h-screen overflow-y-auto pt-20 px-6 pb-32 space-y-6">
+                    <Header title="成长记录" />
+                    <div className="bg-white p-8 rounded-[3rem] shadow-xl text-center border-b-[12px] border-purple-100">
+                        <p className="text-gray-400 font-bold text-xs mb-3">识字总进度</p>
+                        <div className="w-full bg-gray-100 h-10 rounded-full overflow-hidden shadow-inner p-1.5 mb-8">
+                            <div className="h-full bg-gradient-to-r from-purple-400 to-red-400 rounded-full transition-all duration-1000" style={{ width: `${masterPercent}%` }} />
+                        </div>
+                        <div className="flex justify-around items-end">
+                            <div><p className="text-6xl font-black text-purple-600">{progress.mastered.length}</p><p className="text-[10px] text-gray-400 mt-2">认识的字</p></div>
+                            <div><p className="text-6xl font-black text-pink-500">{progress.readSongs.length}</p><p className="text-[10px] text-gray-400 mt-2">学会儿歌</p></div>
+                        </div>
+                    </div>
+                    {hardest.length > 0 && (
+                        <div className="bg-[#FFF4E0] p-6 rounded-[3rem] border-4 border-orange-100">
+                            <h3 className="font-black text-orange-800 mb-4 flex items-center gap-2"><span>🧠</span> 重点复习</h3>
+                            <div className="flex flex-wrap gap-3">
+                                {hardest.map(([idx, count]) => (
+                                    <div key={idx} className="bg-white px-5 py-3 rounded-2xl shadow-sm border-2 border-orange-50 flex items-center gap-2">
+                                        <span className="text-3xl font-black">{WORDS[idx]}</span>
+                                        <span className="text-red-500 text-[10px] font-bold">认错 {count} 次</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const ExamScreen = ({ onBack, onMaster, onWrong }) => {
+            const [step, setStep] = useState(0);
+            const [score, setScore] = useState(0);
+            const [finished, setFinished] = useState(false);
+            const [feedback, setFeedback] = useState(null);
+            const questions = useMemo(() => {
+                return [...Array(10)].map(() => {
+                    const targetIdx = Math.floor(Math.random() * WORDS.length);
+                    const opts = [WORDS[targetIdx], ...WORDS.filter((_, i) => i !== targetIdx).sort(() => 0.5 - Math.random()).slice(0, 2)].sort(() => 0.5 - Math.random());
+                    return { targetIdx, opts };
+                });
+            }, []);
+
+            const current = questions[step];
+            useEffect(() => { if (!finished) speak(`请找出：${WORDS[current.targetIdx]}`); }, [step, finished]);
+
+            const handleAnswer = (ans) => {
+                if (feedback) return;
+                const correct = ans === WORDS[current.targetIdx];
+                if (correct) { speak("答对啦！"); setScore(s => s + 1); setFeedback('correct'); onMaster(current.targetIdx); }
+                else { speak("再找找看？"); setFeedback('wrong'); onWrong(current.targetIdx); }
+                setTimeout(() => {
+                    setFeedback(null);
+                    if (step < 9) setStep(s => s + 1);
+                    else setFinished(true);
+                }, 1500);
+            };
+
+            if (finished) return (
+                <div className="h-screen pt-20 px-8 flex flex-col items-center justify-center space-y-8 bg-pink-50">
+                    <Header title="挑战结果" />
+                    <div className="bg-white w-full p-12 rounded-[4rem] shadow-2xl text-center pop-up">
+                        <div className="text-[8rem] mb-6">🥇</div>
+                        <h2 className="text-4xl font-black text-gray-800">挑战完成！</h2>
+                        <div className="text-8xl font-black text-pink-500 my-8">{score}/10</div>
+                        <button onClick={onBack} className="w-full py-6 bg-green-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-8 border-green-700">返回主页</button>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="h-screen bg-white pt-20 px-6 flex flex-col items-center">
+                    <Header title={`挑战中 ${step + 1}/10`} onBack={onBack} />
+                    <div className={`w-full max-w-sm aspect-square glass-card rounded-[4rem] flex items-center justify-center p-8 border-[15px] transition-all duration-300 ${feedback === 'correct' ? 'border-green-400 scale-105' : feedback === 'wrong' ? 'border-red-400 shake' : 'border-blue-100'}`}>
+                        <div className="text-[12rem] bouncy">{EMOJIS[WORDS[current.targetIdx]]}</div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-5 w-full max-w-sm mt-12 mb-32">
+                        {current.opts.map(opt => (
+                            <button key={opt} onClick={() => handleAnswer(opt)} className="py-7 bg-white rounded-[2.5rem] text-5xl font-black text-gray-700 shadow-xl border-b-[10px] border-gray-100 active:translate-y-2">
+                                {opt}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const Main = () => {
+            const [mode, setMode] = useState('HOME');
+            const [confetti, setConfetti] = useState(false);
+            const [progress, setProgress] = useState(() => {
+                const s = localStorage.getItem('baby_study_master_v1');
+                return s ? JSON.parse(s) : { mastered: [], daily: 0, last: '', wrong: {}, readSongs: [] };
+            });
+
+            useEffect(() => {
+                const today = new Date().toLocaleDateString();
+                if (progress.last !== today) setProgress(p => ({ ...p, daily: 0, last: today }));
+            }, []);
+
+            useEffect(() => localStorage.setItem('baby_study_master_v1', JSON.stringify(progress)), [progress]);
+
+            const triggerWin = () => { setConfetti(true); setTimeout(() => setConfetti(false), 2500); };
+
+            const handleMaster = (idx) => {
+                setProgress(p => {
+                    const isNew = !p.mastered.includes(idx);
+                    if (isNew) triggerWin();
+                    return { ...p, mastered: isNew ? [...p.mastered, idx] : p.mastered, daily: isNew ? p.daily + 1 : p.daily };
+                });
+            };
+
+            const handleWrong = (idx) => {
+                setProgress(p => {
+                    const newW = { ...p.wrong };
+                    newW[idx] = (newW[idx] || 0) + 1;
+                    return { ...p, wrong: newW };
+                });
+            };
+
+            const handleReadSong = (id) => {
+                setProgress(p => {
+                    const isNew = !p.readSongs.includes(id);
+                    if (isNew) triggerWin();
+                    return { ...p, readSongs: isNew ? [...p.readSongs, id] : p.readSongs, daily: isNew ? p.daily + 1 : p.daily };
+                });
+            };
+
+            return (
+                <div className="min-h-screen">
+                    {confetti && <Confetti />}
+                    {mode === 'HOME' && <HomeScreen setMode={setMode} progress={progress} />}
+                    {mode === 'CARDS' && <CardScreen onBack={() => setMode('HOME')} onMaster={handleMaster} progress={progress} />}
+                    {mode === 'SONGS' && <SongScreen onBack={() => setMode('HOME')} onRead={handleReadSong} progress={progress} />}
+                    {mode === 'STATS' && <StatsScreen progress={progress} />}
+                    {mode === 'EXAM_SELECT' && (
+                        <div className="h-screen pt-20 px-6 space-y-6">
+                            <Header title="亲子大挑战" onBack={() => setMode('HOME')} />
+                            <div className="grid grid-cols-1 gap-6 mt-6">
+                                <button onClick={() => setMode('EXAM_WORDS')} className="bg-white p-12 rounded-[4rem] shadow-2xl border-b-[15px] border-orange-200 flex flex-col items-center active:scale-95 transition-all">
+                                    <span className="text-[8rem] mb-4">🎈</span>
+                                    <h3 className="text-4xl font-black text-orange-600">识字小标兵</h3>
+                                </button>
+                                <div className="bg-pink-100 p-8 rounded-[3rem] text-center border-2 border-pink-200">
+                                    <p className="text-pink-600 font-black">💡 亲子时刻：请念出题目让宝宝选</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {mode === 'EXAM_WORDS' && <ExamScreen onBack={() => setMode('EXAM_SELECT')} onMaster={handleMaster} onWrong={handleWrong} />}
+                    <Navbar active={mode} setMode={setMode} />
+                </div>
+            );
+        };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        root.render(<Main />);
     </script>
-<script type="module" src="/index.tsx"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        }
+    </script>
 </body>
 </html>

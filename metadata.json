@@ -1,6 +1,6 @@
 
 {
   "name": "宝贝趣学堂 (Baby Fun Learning)",
-  "description": "An interactive Chinese learning app for toddlers featuring flashcards, nursery rhymes, and progress tracking using native offline speech synthesis.",
+  "description": "已整合为单文件 index.html 的极速学习应用。支持汉字卡片、儿歌、统计分析及离线语音。",
   "requestFramePermissions": []
 }
