@@ -221,10 +221,15 @@
                 <div className="h-screen overflow-y-auto bg-white pt-20 px-4 flex flex-col items-center">
                     <Header title="快来认认它" onBack={onBack} />
                     <div className="w-full max-w-sm flex-1 max-h-[55vh]">
-                        <div className={`h-full w-full glass-card rounded-[4rem] flex flex-col items-center justify-center p-8 border-[12px] transition-all duration-500 ${CARD_COLORS[wordIndex % CARD_COLORS.length]}`}>
+                        <div onClick={() => speak(word)} className={`h-full w-full glass-card rounded-[4rem] flex flex-col items-center justify-center p-8 border-[12px] transition-all duration-500 cursor-pointer active:scale-95 relative ${CARD_COLORS[wordIndex % CARD_COLORS.length]}`}>
+                            {/* 小喇叭装饰图标 */}
+                            <div className="absolute top-4 right-4 text-2xl opacity-60">🔊</div>
+
                             <div className="text-[11rem] drop-shadow-2xl mb-4 pop-up">{EMOJIS[word] || "✨"}</div>
                             <h2 className="text-8xl font-black text-gray-800 tracking-tighter drop-shadow-sm">{word}</h2>
-                            <button onClick={() => speak(word)} className="mt-8 bg-yellow-400 w-20 h-20 rounded-full text-4xl shadow-xl flex items-center justify-center active:scale-90 border-b-8 border-yellow-600">🔊</button>
+
+                            {/* 底部提示文字 */}
+                            <div className="mt-6 text-sm font-bold text-gray-500 opacity-70">点击播放发音</div>
                         </div>
                     </div>
 
