@@ -133,18 +133,18 @@
         );
 
         const Header = ({ title, onBack }) => (
-            <div className="fixed top-0 inset-x-0 bg-white/90 backdrop-blur-md p-4 flex items-center shadow-sm z-[60] h-16 pt-[env(safe-area-inset-top)]">
+            <div className="fixed top-0 inset-x-0 bg-white/90 backdrop-blur-md p-3 flex items-center shadow-sm z-[60] h-14 pt-[env(safe-area-inset-top)]">
                 {onBack && (
-                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full text-blue-600 active:scale-90 transition-transform">
-                        <span className="text-xl">⬅️</span>
+                    <button onClick={onBack} className="w-8 h-8 flex items-center justify-center bg-blue-100 rounded-full text-blue-600 active:scale-90 transition-transform">
+                        <span className="text-lg">⬅️</span>
                     </button>
                 )}
-                <h1 className="flex-1 text-center text-2xl font-black text-pink-500 truncate px-4">{title}</h1>
+                <h1 className="flex-1 text-center text-xl font-black text-pink-500 truncate px-3">{title}</h1>
             </div>
         );
 
         const Navbar = ({ active, setMode }) => (
-            <div className="fixed bottom-0 inset-x-0 bg-white/95 border-t border-pink-50 flex justify-around p-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] z-[60]">
+            <div className="fixed bottom-0 inset-x-0 bg-white/95 border-t border-pink-50 flex justify-around p-2 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] z-[60]">
                 {[
                     {id:'HOME', i:'🏠', l:'首页'},
                     {id:'CARDS', i:'🃏', l:'识字'},
@@ -152,7 +152,7 @@
                     {id:'STATS', i:'📊', l:'家长'}
                 ].map(n => (
                     <button key={n.id} onClick={() => setMode(n.id)} className={`flex flex-col items-center gap-1 transition-all ${active.startsWith(n.id) ? 'text-pink-500 scale-110' : 'text-gray-400 opacity-60'}`}>
-                        <span className="text-3xl">{n.i}</span>
+                        <span className="text-2xl">{n.i}</span>
                         <span className="text-[10px] font-bold">{n.l}</span>
                     </button>
                 ))}
@@ -163,37 +163,37 @@
         const HomeScreen = ({ setMode, progress }) => {
             const dailyPercent = Math.min(100, (progress.daily / 10) * 100);
             return (
-                <div className="h-screen overflow-y-auto pt-20 pb-32 px-6 space-y-6">
+                <div className="h-screen overflow-y-auto pt-14 pb-28 px-4 space-y-4">
                     <Header title="宝贝趣学堂" />
-                    <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-4 border-pink-50">
-                        <div className="flex justify-between items-end mb-4">
+                    <div className="bg-white p-4 rounded-[2rem] shadow-xl border-4 border-pink-50">
+                        <div className="flex justify-between items-end mb-3">
                             <div>
-                                <h2 className="text-xl font-black text-gray-700">今日小成就 ✨</h2>
+                                <h2 className="text-lg font-black text-gray-700">今日小成就 ✨</h2>
                                 <p className="text-xs text-gray-400 font-bold">每天十分钟，宝宝更聪明</p>
                             </div>
-                            <span className="text-2xl font-black text-pink-500">{progress.daily}/10</span>
+                            <span className="text-xl font-black text-pink-500">{progress.daily}/10</span>
                         </div>
-                        <div className="w-full bg-gray-100 h-8 rounded-full overflow-hidden shadow-inner p-1">
+                        <div className="w-full bg-gray-100 h-6 rounded-full overflow-hidden shadow-inner p-0.5">
                             <div className="h-full bg-gradient-to-r from-pink-400 via-red-400 to-yellow-400 rounded-full transition-all duration-1000" style={{ width: `${dailyPercent}%` }} />
                         </div>
                     </div>
 
-                    <button onClick={() => setMode('EXAM_SELECT')} className="w-full bg-gradient-to-br from-orange-400 to-yellow-500 p-8 rounded-[3rem] shadow-2xl border-b-[12px] border-orange-700 flex items-center justify-between text-white active:translate-y-2 active:border-b-4 transition-all bouncy">
+                    <button onClick={() => setMode('EXAM_SELECT')} className="w-full bg-gradient-to-br from-orange-400 to-yellow-500 p-6 rounded-[2.5rem] shadow-2xl border-b-[10px] border-orange-700 flex items-center justify-between text-white active:translate-y-2 active:border-b-4 transition-all bouncy">
                         <div className="text-left">
-                            <h2 className="text-4xl font-black mb-1">开始挑战 🏆</h2>
-                            <p className="opacity-90 font-bold tracking-widest text-sm uppercase">赢取勋章吧！</p>
+                            <h2 className="text-3xl font-black mb-1">开始挑战 🏆</h2>
+                            <p className="opacity-90 font-bold tracking-widest text-xs uppercase">赢取勋章吧！</p>
                         </div>
-                        <span className="text-7xl">🥇</span>
+                        <span className="text-6xl">🥇</span>
                     </button>
 
-                    <div className="grid grid-cols-2 gap-5">
-                        <button onClick={() => setMode('CARDS')} className="aspect-square bg-blue-400 rounded-[2.5rem] flex flex-col items-center justify-center text-white shadow-xl border-b-[10px] border-blue-600 active:translate-y-2 active:border-b-4">
-                            <span className="text-7xl mb-2">🎈</span>
-                            <span className="text-2xl font-black">快乐识字</span>
+                    <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => setMode('CARDS')} className="aspect-square bg-blue-400 rounded-[2rem] flex flex-col items-center justify-center text-white shadow-xl border-b-[8px] border-blue-600 active:translate-y-2 active:border-b-4">
+                            <span className="text-6xl mb-1">🎈</span>
+                            <span className="text-xl font-black">快乐识字</span>
                         </button>
-                        <button onClick={() => setMode('SONGS')} className="aspect-square bg-pink-400 rounded-[2.5rem] flex flex-col items-center justify-center text-white shadow-xl border-b-[10px] border-pink-600 active:translate-y-2 active:border-b-4">
-                            <span className="text-7xl mb-2">🎵</span>
-                            <span className="text-2xl font-black">儿歌大王</span>
+                        <button onClick={() => setMode('SONGS')} className="aspect-square bg-pink-400 rounded-[2rem] flex flex-col items-center justify-center text-white shadow-xl border-b-[8px] border-pink-600 active:translate-y-2 active:border-b-4">
+                            <span className="text-6xl mb-1">🎵</span>
+                            <span className="text-xl font-black">儿歌大王</span>
                         </button>
                     </div>
                 </div>
@@ -218,35 +218,35 @@
             useEffect(() => { speak(word); }, [word]);
 
             return (
-                <div className="h-screen overflow-y-auto bg-white pt-20 px-4 flex flex-col items-center">
+                <div className="h-screen overflow-y-auto bg-white pt-14 px-4 flex flex-col items-center">
                     <Header title="快来认认它" onBack={onBack} />
-                    <div className="w-full max-w-sm flex-1 max-h-[55vh]">
-                        <div onClick={() => speak(word)} className={`h-full w-full glass-card rounded-[4rem] flex flex-col items-center justify-center p-8 border-[12px] transition-all duration-500 cursor-pointer active:scale-95 relative ${CARD_COLORS[wordIndex % CARD_COLORS.length]}`}>
+                    <div className="w-full max-w-sm flex-1 max-h-[60vh]">
+                        <div onClick={() => speak(word)} className={`h-full w-full glass-card rounded-[3rem] flex flex-col items-center justify-center p-6 border-[10px] transition-all duration-500 cursor-pointer active:scale-95 relative ${CARD_COLORS[wordIndex % CARD_COLORS.length]}`}>
                             {/* 小喇叭装饰图标 */}
-                            <div className="absolute top-4 right-4 text-2xl opacity-60">🔊</div>
+                            <div className="absolute top-3 right-3 text-xl opacity-60">🔊</div>
 
-                            <div className="text-[11rem] drop-shadow-2xl mb-4 pop-up">{EMOJIS[word] || "✨"}</div>
-                            <h2 className="text-8xl font-black text-gray-800 tracking-tighter drop-shadow-sm">{word}</h2>
+                            <div className="text-[10rem] drop-shadow-2xl mb-3 pop-up">{EMOJIS[word] || "✨"}</div>
+                            <h2 className="text-7xl font-black text-gray-800 tracking-tighter drop-shadow-sm">{word}</h2>
 
                             {/* 底部提示文字 */}
-                            <div className="mt-6 text-sm font-bold text-gray-500 opacity-70">点击播放发音</div>
+                            <div className="mt-4 text-sm font-bold text-gray-500 opacity-70">点击播放发音</div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6 w-full max-w-sm my-6">
-                        <button onClick={() => setIdx(i => (i - 1 + WORDS.length) % WORDS.length)} className="jelly-btn py-5 bg-gradient-to-b from-blue-400 to-blue-500 rounded-[2rem] text-white shadow-xl border-b-8 border-blue-700 flex items-center justify-center gap-2">
-                            <span className="text-3xl">⬅️</span>
-                            <span className="text-xl font-black">上一个</span>
+                    <div className="grid grid-cols-2 gap-4 w-full max-w-sm my-4">
+                        <button onClick={() => setIdx(i => (i - 1 + WORDS.length) % WORDS.length)} className="jelly-btn py-4 bg-gradient-to-b from-blue-400 to-blue-500 rounded-[1.5rem] text-white shadow-xl border-b-6 border-blue-700 flex items-center justify-center gap-2">
+                            <span className="text-2xl">⬅️</span>
+                            <span className="text-lg font-black">上一个</span>
                         </button>
-                        <button onClick={() => setIdx(i => (i + 1) % WORDS.length)} className="jelly-btn py-5 bg-gradient-to-b from-blue-400 to-blue-500 rounded-[2rem] text-white shadow-xl border-b-8 border-blue-700 flex items-center justify-center gap-2">
-                            <span className="text-xl font-black">下一个</span>
-                            <span className="text-3xl">➡️</span>
+                        <button onClick={() => setIdx(i => (i + 1) % WORDS.length)} className="jelly-btn py-4 bg-gradient-to-b from-blue-400 to-blue-500 rounded-[1.5rem] text-white shadow-xl border-b-6 border-blue-700 flex items-center justify-center gap-2">
+                            <span className="text-lg font-black">下一个</span>
+                            <span className="text-2xl">➡️</span>
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-32">
-                        <button onClick={() => speak("继续学习！")} className="py-6 bg-gray-100 text-gray-400 rounded-[2rem] font-black text-xl border-b-4 border-gray-200 active:translate-y-1">在学中 🧐</button>
-                        <button onClick={() => { speak("学会啦！"); onMaster(wordIndex); setIdx(i => (i + 1) % WORDS.length); }} className={`py-6 rounded-[2rem] text-xl font-black text-white shadow-lg border-b-8 ${isMastered ? 'bg-green-500 border-green-700' : 'bg-green-400 border-green-600 active:translate-y-1'}`}>
+                    <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-28">
+                        <button onClick={() => speak("继续学习！")} className="py-5 bg-gray-100 text-gray-400 rounded-[1.5rem] font-black text-lg border-b-3 border-gray-200 active:translate-y-1">在学中 🧐</button>
+                        <button onClick={() => { speak("学会啦！"); onMaster(wordIndex); setIdx(i => (i + 1) % WORDS.length); }} className={`py-5 rounded-[1.5rem] text-lg font-black text-white shadow-lg border-b-6 ${isMastered ? 'bg-green-500 border-green-700' : 'bg-green-400 border-green-600 active:translate-y-1'}`}>
                             {isMastered ? '学会啦 ✅' : '学会啦 🏆'}
                         </button>
                     </div>
@@ -257,40 +257,40 @@
         const SongScreen = ({ onBack, onRead, progress }) => {
             const [sel, setSel] = useState(null);
             if (sel) return (
-                <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pt-20 px-4 overflow-y-auto pb-32">
+                <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pt-14 px-4 overflow-y-auto pb-28">
                     <Header title={sel.title} onBack={() => setSel(null)} />
 
                     {/* 装饰性顶部元素 */}
-                    <div className="flex justify-center mb-6">
-                        <div className="text-6xl animate-bounce">🎵</div>
+                    <div className="flex justify-center mb-4">
+                        <div className="text-5xl animate-bounce">🎵</div>
                     </div>
 
-                    <div className="bg-white p-8 rounded-[3.5rem] shadow-2xl border-t-[15px] border-pink-400 pop-up relative overflow-hidden">
+                    <div className="bg-white p-6 rounded-[3rem] shadow-2xl border-t-[12px] border-pink-400 pop-up relative overflow-hidden">
                         {/* 装饰背景 */}
                         <div className="absolute inset-0 opacity-5 pointer-events-none">
-                            <div className="absolute top-4 left-4 text-4xl">🎼</div>
-                            <div className="absolute top-4 right-4 text-4xl">🎵</div>
-                            <div className="absolute bottom-4 left-4 text-4xl">🎶</div>
-                            <div className="absolute bottom-4 right-4 text-4xl">🎵</div>
+                            <div className="absolute top-3 left-3 text-3xl">🎼</div>
+                            <div className="absolute top-3 right-3 text-3xl">🎵</div>
+                            <div className="absolute bottom-3 left-3 text-3xl">🎶</div>
+                            <div className="absolute bottom-3 right-3 text-3xl">🎵</div>
                         </div>
 
                         {/* 歌词内容 */}
-                        <div className="relative z-10 space-y-6">
+                        <div className="relative z-10 space-y-4">
                             {sel.content.map((l, i) => (
-                                <p key={i} onClick={() => speak(l)} className="text-3xl text-center font-black text-gray-700 active:text-pink-500 py-3 transition-all cursor-pointer hover:bg-pink-50 rounded-xl px-4 leading-relaxed">
+                                <p key={i} onClick={() => speak(l)} className="text-2xl text-center font-black text-gray-700 active:text-pink-500 py-2 transition-all cursor-pointer hover:bg-pink-50 rounded-lg px-3 leading-relaxed">
                                     {l}
                                 </p>
                             ))}
                         </div>
 
                         {/* 底部按钮区域 */}
-                        <div className="mt-12 space-y-4 relative z-10">
-                            <button onClick={() => speak(sel.content.join(' '), 0.8)} className="w-full py-6 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-[2.5rem] text-3xl font-black shadow-xl border-b-[10px] border-pink-700 active:translate-y-2 flex items-center justify-center gap-3">
-                                <span className="text-4xl">🔊</span>
+                        <div className="mt-8 space-y-3 relative z-10">
+                            <button onClick={() => speak(sel.content.join(' '), 0.8)} className="w-full py-5 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-[2rem] text-2xl font-black shadow-xl border-b-[8px] border-pink-700 active:translate-y-2 flex items-center justify-center gap-3">
+                                <span className="text-3xl">🔊</span>
                                 <span>听完整首儿歌</span>
                             </button>
-                            <button onClick={() => { onRead(sel.id); setSel(null); speak("真了不起！读完啦！"); }} className="w-full py-5 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-[2.5rem] text-xl font-black shadow-lg border-b-8 border-green-600 active:translate-y-2 flex items-center justify-center gap-3">
-                                <span className="text-2xl">✌️</span>
+                            <button onClick={() => { onRead(sel.id); setSel(null); speak("真了不起！读完啦！"); }} className="w-full py-4 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-[2rem] text-lg font-black shadow-xl border-b-6 border-green-600 active:translate-y-2 flex items-center justify-center gap-3">
+                                <span className="text-xl">✌️</span>
                                 <span>我读完啦！</span>
                             </button>
                         </div>
@@ -298,15 +298,15 @@
                 </div>
             );
             return (
-                <div className="h-screen overflow-y-auto pt-20 px-6 pb-32 space-y-4">
+                <div className="h-screen overflow-y-auto pt-14 px-4 pb-28 space-y-3">
                     <Header title="儿歌大王" onBack={onBack} />
                     {SONGS.map((s, i) => (
-                        <div key={s.id} onClick={() => setSel(s)} className="bg-white p-6 rounded-[2rem] flex items-center justify-between shadow-md border-l-[12px] border-pink-400 active:scale-95 transition-all">
-                            <div className="flex items-center gap-5">
-                                <span className="text-5xl">{{'s1':'👶','s2':'🦊','s3':'🚪','s4':'💨','s5':'🎤','s6':'🚿','s7':'📞','s8':'👩'}[s.id] || '🎵'}</span>
-                                <span className="text-2xl font-black text-gray-800">{s.title}</span>
+                        <div key={s.id} onClick={() => setSel(s)} className="bg-white p-4 rounded-[1.5rem] flex items-center justify-between shadow-md border-l-[10px] border-pink-400 active:scale-95 transition-all">
+                            <div className="flex items-center gap-4">
+                                <span className="text-4xl">{{'s1':'👶','s2':'🦊','s3':'🚪','s4':'💨','s5':'🎤','s6':'🚿','s7':'📞','s8':'👩'}[s.id] || '🎵'}</span>
+                                <span className="text-xl font-black text-gray-800">{s.title}</span>
                             </div>
-                            {progress.readSongs.includes(s.id) ? <span className="text-green-500 text-2xl font-black">✅</span> : <span className="text-pink-300 font-black">➔</span>}
+                            {progress.readSongs.includes(s.id) ? <span className="text-green-500 text-xl font-black">✅</span> : <span className="text-pink-300 font-black text-lg">➔</span>}
                         </div>
                     ))}
                 </div>
@@ -317,25 +317,25 @@
             const masterPercent = Math.round((progress.mastered.length / WORDS.length) * 100);
             const hardest = Object.entries(progress.wrong || {}).sort((a,b)=>b[1]-a[1]).slice(0,3);
             return (
-                <div className="h-screen overflow-y-auto pt-20 px-6 pb-32 space-y-6">
+                <div className="h-screen overflow-y-auto pt-14 px-4 pb-28 space-y-4">
                     <Header title="成长记录" />
-                    <div className="bg-white p-8 rounded-[3rem] shadow-xl text-center border-b-[12px] border-purple-100">
+                    <div className="bg-white p-6 rounded-[2.5rem] shadow-xl text-center border-b-[10px] border-purple-100">
                         <p className="text-gray-400 font-bold text-xs mb-3">识字总进度</p>
-                        <div className="w-full bg-gray-100 h-10 rounded-full overflow-hidden shadow-inner p-1.5 mb-8">
+                        <div className="w-full bg-gray-100 h-8 rounded-full overflow-hidden shadow-inner p-1 mb-6">
                             <div className="h-full bg-gradient-to-r from-purple-400 to-red-400 rounded-full transition-all duration-1000" style={{ width: `${masterPercent}%` }} />
                         </div>
                         <div className="flex justify-around items-end">
-                            <div><p className="text-6xl font-black text-purple-600">{progress.mastered.length}</p><p className="text-[10px] text-gray-400 mt-2">认识的字</p></div>
-                            <div><p className="text-6xl font-black text-pink-500">{progress.readSongs.length}</p><p className="text-[10px] text-gray-400 mt-2">学会儿歌</p></div>
+                            <div><p className="text-5xl font-black text-purple-600">{progress.mastered.length}</p><p className="text-[10px] text-gray-400 mt-2">认识的字</p></div>
+                            <div><p className="text-5xl font-black text-pink-500">{progress.readSongs.length}</p><p className="text-[10px] text-gray-400 mt-2">学会儿歌</p></div>
                         </div>
                     </div>
                     {hardest.length > 0 && (
-                        <div className="bg-[#FFF4E0] p-6 rounded-[3rem] border-4 border-orange-100">
-                            <h3 className="font-black text-orange-800 mb-4 flex items-center gap-2"><span>🧠</span> 重点复习</h3>
-                            <div className="flex flex-wrap gap-3">
+                        <div className="bg-[#FFF4E0] p-4 rounded-[2.5rem] border-4 border-orange-100">
+                            <h3 className="font-black text-orange-800 mb-3 flex items-center gap-2"><span>🧠</span> 重点复习</h3>
+                            <div className="flex flex-wrap gap-2">
                                 {hardest.map(([idx, count]) => (
-                                    <div key={idx} className="bg-white px-5 py-3 rounded-2xl shadow-sm border-2 border-orange-50 flex items-center gap-2">
-                                        <span className="text-3xl font-black">{WORDS[idx]}</span>
+                                    <div key={idx} className="bg-white px-4 py-2 rounded-xl shadow-sm border-2 border-orange-50 flex items-center gap-2">
+                                        <span className="text-2xl font-black">{WORDS[idx]}</span>
                                         <span className="text-red-500 text-[10px] font-bold">认错 {count} 次</span>
                                     </div>
                                 ))}
@@ -426,50 +426,50 @@
             );
 
             return (
-                <div className="h-screen bg-white pt-20 px-6 flex flex-col items-center">
+                <div className="h-screen bg-white pt-14 px-4 flex flex-col items-center">
                     <Header title={`挑战中 ${step + 1}/${CHALLENGE_QUESTION_COUNT}`} onBack={onBack} />
 
                     {/* 发音区域 - 整个区域都可以点击 */}
                     <div
                         onClick={() => speak(WORDS[current.targetIdx])}
-                        className={`w-full max-w-sm aspect-square glass-card rounded-[4rem] flex flex-col items-center justify-center p-8 pt-12 pb-12 border-[15px] transition-all duration-300 cursor-pointer active:scale-95 relative overflow-hidden ${feedback === 'correct' ? 'border-green-400 scale-105' : feedback === 'wrong' ? 'border-red-400' : 'border-blue-100'}`}
+                        className={`w-full max-w-sm aspect-square glass-card rounded-[3rem] flex flex-col items-center justify-center p-6 pt-8 pb-8 border-[12px] transition-all duration-300 cursor-pointer active:scale-95 relative overflow-hidden ${feedback === 'correct' ? 'border-green-400 scale-105' : feedback === 'wrong' ? 'border-red-400' : 'border-blue-100'}`}
                     >
                         {/* 装饰背景 - 最底层 */}
                         <div className="absolute inset-0 opacity-5 pointer-events-none z-0">
-                            <div className="absolute top-4 left-4 text-3xl">🔤</div>
-                            <div className="absolute top-4 right-4 text-3xl">📚</div>
-                            <div className="absolute bottom-4 left-4 text-3xl">🎓</div>
-                            <div className="absolute bottom-4 right-4 text-3xl">✨</div>
+                            <div className="absolute top-3 left-3 text-2xl">🔤</div>
+                            <div className="absolute top-3 right-3 text-2xl">📚</div>
+                            <div className="absolute bottom-3 left-3 text-2xl">🎓</div>
+                            <div className="absolute bottom-3 right-3 text-2xl">✨</div>
                         </div>
 
                         {/* 主要内容区域 - 中间层 */}
                         <div className="text-center relative z-10 w-full flex flex-col items-center justify-center">
                             {/* 发音提示标题 - 顶部 */}
-                            <div className="text-xl font-black text-pink-600 mb-4 flex items-center justify-center gap-2">
-                                <span className="text-2xl animate-pulse">🔊</span> 听听这个字怎么念 <span className="text-2xl animate-pulse">🔊</span>
+                            <div className="text-lg font-black text-pink-600 mb-3 flex items-center justify-center gap-2">
+                                <span className="text-xl animate-pulse">🔊</span> 听听这个字怎么念 <span className="text-xl animate-pulse">🔊</span>
                             </div>
 
                             {/* Emoji显示 - 主要视觉焦点，预留跳动空间 */}
-                            <div className="text-[12rem] bouncy mb-4 relative z-20 mt-2 pt-4 pb-4">{EMOJIS[WORDS[current.targetIdx]]}</div>
+                            <div className="text-[10rem] bouncy mb-3 relative z-20 mt-1 pt-2 pb-2">{EMOJIS[WORDS[current.targetIdx]]}</div>
 
                             {/* 答对后才显示文字确认 */}
                             {feedback === 'correct' && (
-                                <div className="text-7xl font-black text-green-600 mb-4 relative z-20 drop-shadow-lg">
+                                <div className="text-6xl font-black text-green-600 mb-3 relative z-20 drop-shadow-lg">
                                     {WORDS[current.targetIdx]}
                                 </div>
                             )}
 
                             {/* 点击提示 - 底部 */}
                             {!feedback && (
-                                <div className="mt-4 text-sm font-bold text-pink-500 animate-pulse relative z-20">
+                                <div className="mt-3 text-sm font-bold text-pink-500 animate-pulse relative z-20">
                                     {retryMode ? '🔄 再听听，选择正确的答案吧！' : '👆 点击任意位置发音'}
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-5 w-full max-w-sm mt-8 mb-32">
+                    <div className="grid grid-cols-1 gap-3 w-full max-w-sm mt-6 mb-28">
                         {current.opts.map(opt => (
-                            <button key={opt} onClick={() => handleAnswer(opt)} className="py-7 bg-white rounded-[2.5rem] text-5xl font-black text-gray-700 shadow-xl border-b-[10px] border-gray-100 active:translate-y-2">
+                            <button key={opt} onClick={() => handleAnswer(opt)} className="py-5 bg-white rounded-[2rem] text-4xl font-black text-gray-700 shadow-xl border-b-[8px] border-gray-100 active:translate-y-2">
                                 {opt}
                             </button>
                         ))}
@@ -1073,22 +1073,22 @@
                     {mode === 'SONGS' && <SongScreen onBack={() => setMode('HOME')} onRead={handleReadSong} progress={progress} />}
                     {mode === 'STATS' && <StatsScreen progress={progress} />}
                     {mode === 'EXAM_SELECT' && (
-                        <div className="h-screen overflow-y-auto pt-20 px-6 space-y-6">
+                        <div className="h-screen overflow-y-auto pt-14 px-4 space-y-4">
                             <Header title="亲子大挑战" onBack={() => setMode('HOME')} />
-                            <div className="grid grid-cols-1 gap-6 mt-6">
-                                <button onClick={() => setMode('EXAM_WORDS')} className="bg-white p-12 rounded-[4rem] shadow-2xl border-b-[15px] border-orange-200 flex flex-col items-center active:scale-95 transition-all">
-                                    <span className="text-[8rem] mb-4">🎈</span>
-                                    <h3 className="text-4xl font-black text-orange-600">识字小标兵</h3>
+                            <div className="grid grid-cols-1 gap-4 mt-4">
+                                <button onClick={() => setMode('EXAM_WORDS')} className="bg-white p-8 rounded-[3rem] shadow-2xl border-b-[12px] border-orange-200 flex flex-col items-center active:scale-95 transition-all">
+                                    <span className="text-[6rem] mb-3">🎈</span>
+                                    <h3 className="text-3xl font-black text-orange-600">识字小标兵</h3>
                                 </button>
-                                <button onClick={() => setMode('EXAM_SONG_RECOG')} className="bg-white p-12 rounded-[4rem] shadow-2xl border-b-[15px] border-purple-200 flex flex-col items-center active:scale-95 transition-all">
-                                    <span className="text-[8rem] mb-4">🕵️</span>
-                                    <h3 className="text-4xl font-black text-purple-600">歌词小侦探</h3>
+                                <button onClick={() => setMode('EXAM_SONG_RECOG')} className="bg-white p-8 rounded-[3rem] shadow-2xl border-b-[12px] border-purple-200 flex flex-col items-center active:scale-95 transition-all">
+                                    <span className="text-[6rem] mb-3">🕵️</span>
+                                    <h3 className="text-3xl font-black text-purple-600">歌词小侦探</h3>
                                 </button>
-                                <button onClick={() => setMode('EXAM_SONGS')} className="bg-white p-12 rounded-[4rem] shadow-2xl border-b-[15px] border-pink-200 flex flex-col items-center active:scale-95 transition-all">
-                                    <span className="text-[8rem] mb-4">🎵</span>
-                                    <h3 className="text-4xl font-black text-pink-600">儿歌小能手</h3>
+                                <button onClick={() => setMode('EXAM_SONGS')} className="bg-white p-8 rounded-[3rem] shadow-2xl border-b-[12px] border-pink-200 flex flex-col items-center active:scale-95 transition-all">
+                                    <span className="text-[6rem] mb-3">🎵</span>
+                                    <h3 className="text-3xl font-black text-pink-600">儿歌小能手</h3>
                                 </button>
-                                <div className="bg-pink-100 p-8 rounded-[3rem] text-center border-2 border-pink-200">
+                                <div className="bg-pink-100 p-6 rounded-[2.5rem] text-center border-2 border-pink-200">
                                     <p className="text-pink-600 font-black">💡 亲子时刻：请念出题目让宝宝选</p>
                                 </div>
                             </div>
