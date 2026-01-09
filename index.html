@@ -104,6 +104,19 @@
             { id: 's8', title: '妈妈', content: ['你给我洗脸，', '你给我梳头发，', '你给我换衣服，', '你是我的妈妈。', '我给洋娃娃洗脸，', '我给洋娃娃梳头发，', '我是洋娃娃的妈妈。'] }
         ];
 
+        const POEMS = [
+            { id: 'p1', title: '对韵歌', author: '选自声律启蒙', content: ['云对雨，', '雪对风。', '花对树，', '鸟对虫。', '山青对水秀，', '柳绿对桃红。'] },
+            { id: 'p2', title: '咏雪诗', author: '清.郑燮', content: ['一片两片三四片，', '五六七八九十片。', '千片万片无数片，', '飞入梅花总不见。'] },
+            { id: 'p3', title: '咏鹅', author: '骆宾王', content: ['鹅鹅鹅，', '曲项向天歌。', '白毛浮绿水，', '红掌拨清波。'] },
+            { id: 'p4', title: '江南', author: '汉乐府', content: ['江南可采莲，', '莲叶何田田。', '鱼戏莲叶间。', '鱼戏莲叶东，', '鱼戏莲叶西，', '鱼戏莲叶南，', '鱼戏莲叶北。'] },
+            { id: 'p5', title: '静夜思', author: '李白', content: ['床前明月光，', '疑是地上霜。', '举头望明月，', '低头思故乡。'] },
+            { id: 'p6', title: '春晓', author: '孟浩然', content: ['春眠不觉晓，', '处处闻啼鸟。', '夜来风雨声，', '花落知多少。'] },
+            { id: 'p7', title: '登鹳雀楼', author: '王之涣', content: ['白日依山尽，', '黄河入海流。', '欲穷千里目，', '更上一层楼。'] },
+            { id: 'p8', title: '小儿垂钓', author: '胡令能', content: ['蓬头稚子学垂纶，', '侧坐莓苔草映身。', '路人借问遥招手，', '怕得鱼惊不应人。'] },
+            { id: 'p9', title: '江雪', author: '柳宗元', content: ['千山鸟飞绝，', '万径人踪灭。', '孤舟蓑笠翁，', '独钓寒江雪。'] },
+            { id: 'p10', title: '悯农', author: '李绅', content: ['锄禾日当午，', '汗滴禾下土。', '谁知盘中餐，', '粒粒皆辛苦。'] },
+            { id: 'p11', title: '寻隐者不遇', author: '贾岛', content: ['松下问童子，', '言师采药去。', '只在此山中，', '云深不知处。'] }
+        ];
 
         const CARD_COLORS = ['border-red-400', 'border-blue-400', 'border-green-400', 'border-yellow-400', 'border-purple-400', 'border-pink-400', 'border-orange-400'];
 
@@ -149,6 +162,7 @@
                     {id:'HOME', i:'🏠', l:'首页'},
                     {id:'CARDS', i:'🃏', l:'识字'},
                     {id:'SONGS', i:'🎵', l:'儿歌'},
+                    {id:'POEMS', i:'📖', l:'诗词'},
                     {id:'STATS', i:'📊', l:'家长'}
                 ].map(n => (
                     <button key={n.id} onClick={() => setMode(n.id)} className={`flex flex-col items-center gap-1 transition-all ${active.startsWith(n.id) ? 'text-pink-500 scale-110' : 'text-gray-400 opacity-60'}`}>
@@ -307,6 +321,75 @@
                                 <span className="text-xl font-black text-gray-800">{s.title}</span>
                             </div>
                             {progress.readSongs.includes(s.id) ? <span className="text-green-500 text-xl font-black">✅</span> : <span className="text-pink-300 font-black text-lg">➔</span>}
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        const PoemsScreen = ({ onBack, progress }) => {
+            const [sel, setSel] = useState(null);
+            if (sel) return (
+                <div className="h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 pt-14 px-4 overflow-y-auto pb-28">
+                    <Header title={sel.title} onBack={() => setSel(null)} />
+
+                    {/* 装饰性顶部元素 */}
+                    <div className="flex justify-center mb-4">
+                        <div className="text-5xl animate-bounce">📖</div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-[3rem] shadow-2xl border-t-[12px] border-indigo-400 pop-up relative overflow-hidden">
+                        {/* 装饰背景 */}
+                        <div className="absolute inset-0 opacity-5 pointer-events-none">
+                            <div className="absolute top-3 left-3 text-3xl">📚</div>
+                            <div className="absolute top-3 right-3 text-3xl">📖</div>
+                            <div className="absolute bottom-3 left-3 text-3xl">✨</div>
+                            <div className="absolute bottom-3 right-3 text-3xl">📝</div>
+                        </div>
+
+                        {/* 作者信息 */}
+                        <div className="text-center mb-6 relative z-10">
+                            <div className="inline-block bg-indigo-100 px-6 py-2 rounded-full border-2 border-indigo-200">
+                                <span className="text-lg font-black text-indigo-600">作者：{sel.author}</span>
+                            </div>
+                        </div>
+
+                        {/* 诗词内容 */}
+                        <div className="relative z-10 space-y-4">
+                            {sel.content.map((l, i) => (
+                                <p key={i} onClick={() => speak(l)} className="text-2xl text-center font-black text-gray-700 active:text-indigo-500 py-2 transition-all cursor-pointer hover:bg-indigo-50 rounded-lg px-3 leading-relaxed">
+                                    {l}
+                                </p>
+                            ))}
+                        </div>
+
+                        {/* 底部按钮区域 */}
+                        <div className="mt-8 space-y-3 relative z-10">
+                            <button onClick={() => speak(sel.content.join(' '), 0.8)} className="w-full py-5 bg-gradient-to-r from-indigo-400 to-purple-500 text-white rounded-[2rem] text-2xl font-black shadow-xl border-b-[8px] border-indigo-700 active:translate-y-2 flex items-center justify-center gap-3">
+                                <span className="text-3xl">🔊</span>
+                                <span>听完整首诗词</span>
+                            </button>
+                            <button onClick={() => speak("真棒！背会啦！")} className="w-full py-4 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-[2rem] text-lg font-black shadow-xl border-b-6 border-green-600 active:translate-y-2 flex items-center justify-center gap-3">
+                                <span className="text-2xl">✌️</span>
+                                <span>背会啦！</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+            return (
+                <div className="h-screen overflow-y-auto pt-14 px-4 pb-28 space-y-3">
+                    <Header title="古诗词欣赏" onBack={onBack} />
+                    {POEMS.map((p, i) => (
+                        <div key={p.id} onClick={() => setSel(p)} className="bg-white p-4 rounded-[1.5rem] flex items-center justify-between shadow-md border-l-[10px] border-indigo-400 active:scale-95 transition-all">
+                            <div className="flex items-center gap-4">
+                                <span className="text-4xl">📖</span>
+                                <div>
+                                    <span className="text-xl font-black text-gray-800 block">{p.title}</span>
+                                    <span className="text-sm font-bold text-indigo-600">{p.author}</span>
+                                </div>
+                            </div>
+                            <span className="text-pink-300 font-black text-lg">➔</span>
                         </div>
                     ))}
                 </div>
@@ -1065,6 +1148,7 @@
                     {mode === 'HOME' && <HomeScreen setMode={setMode} progress={progress} />}
                     {mode === 'CARDS' && <CardScreen onBack={() => setMode('HOME')} onMaster={handleMaster} progress={progress} />}
                     {mode === 'SONGS' && <SongScreen onBack={() => setMode('HOME')} onRead={handleReadSong} progress={progress} />}
+                    {mode === 'POEMS' && <PoemsScreen onBack={() => setMode('HOME')} progress={progress} />}
                     {mode === 'STATS' && <StatsScreen progress={progress} />}
                     {mode === 'EXAM_SELECT' && (
                         <div className="h-screen overflow-y-auto pt-14 px-4 space-y-4">
